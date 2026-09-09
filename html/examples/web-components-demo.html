@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Web Components Demo (Custom Element + Shadow DOM)</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 600px; margin: 2rem auto; padding: 0 1rem; }
+
+    /*
+      This global ".card" class exists ONLY to prove a point below:
+      it will NOT leak into our <user-card> custom element, because
+      that element's internals live inside an isolated Shadow DOM.
+    */
+    .card { background: yellow; padding: 2rem; }
+  </style>
+</head>
+<body>
+
+  <h1>Custom Element + Shadow DOM Demo</h1>
+
+  <p>
+    Notice the yellow global <code>.card</code> style defined in this page's
+    <code>&lt;style&gt;</code> tag does <strong>not</strong> affect the
+    card below — that's Shadow DOM style encapsulation in action.
+  </p>
+
+  <div class="card">This div uses the global .card style (yellow) — for comparison.</div>
+
+  <br />
+
+  <!--
+    This is our custom element in use. To the browser it's just another
+    HTML tag — you can set attributes on it exactly like any built-in element.
+    Custom element tag names MUST contain a hyphen (e.g. "user-card"), which
+    is how the HTML spec guarantees no future built-in tag will ever clash
+    with a name you invent.
+  -->
+  <user-card name="Sriramsai" role="Senior Frontend Engineer"></user-card>
+  <user-card name="Ada Lovelace" role="Mathematician"></user-card>
+
+  <script>
+    // -------------------------------------------------------------------
+    // Define the custom element's behavior by extending HTMLElement.
+    // -------------------------------------------------------------------
+    class UserCard extends HTMLElement {
+      constructor() {
+        super(); // required first line — lets the browser set up the base element
+
+        // attachShadow creates an isolated DOM subtree ("shadow root") for
+        // this element. mode: 'open' means outside JS CAN read
+        // this.shadowRoot; mode: 'closed' would make it return null.
+        this.shadowRoot_ = this.attachShadow({ mode: 'open' });
+      }
+
+      // Called automatically when the element is inserted into the page's DOM.
+      // This is the right place to build/render the element's internal markup,
+      // because now we know its attributes are readable.
+      connectedCallback() {
+        const name = this.getAttribute('name') || 'Unknown';
+        const role = this.getAttribute('role') || '';
+
+        // Styles defined here are SCOPED to this shadow root only —
+        // they cannot leak out to the page, and the page's global CSS
+        // (like our yellow .card class above) cannot leak in either.
+        this.shadowRoot_.innerHTML = `
+          <style>
+            .card {
+              background: #eef2f7;
+              border: 1px solid #cbd5e0;
+              border-radius: 10px;
+              padding: 1rem;
+              margin-bottom: 0.75rem;
+              font-family: system-ui, sans-serif;
+            }
+            .name { font-weight: 700; font-size: 1.05rem; }
+            .role { color: #555; font-size: 0.9rem; }
+          </style>
+
+          <div class="card">
+            <div class="name">${this.escapeHtml(name)}</div>
+            <div class="role">${this.escapeHtml(role)}</div>
+          </div>
+        `;
+
+        console.log(`<user-card> for "${name}" connected to the page.`);
+      }
+
+      // Called when the element is removed from the page — good place to
+      // clean up timers/listeners/subscriptions if this component had any.
+      disconnectedCallback() {
+        console.log('<user-card> removed from the page.');
+      }
+
+      // Declaring which attributes we care about watching for changes.
+      // Only attributes listed here will trigger attributeChangedCallback.
+      static get observedAttributes() {
+        return ['name', 'role'];
+      }
+
+      // Fires whenever an observed attribute's value changes (e.g. via
+      // element.setAttribute('name', 'New Name') from outside).
+      attributeChangedCallback(attrName, oldValue, newValue) {
+        console.log(`<user-card> attribute "${attrName}" changed: "${oldValue}" -> "${newValue}"`);
+        if (this.isConnected) {
+          this.connectedCallback(); // simplest way to re-render for this demo
+        }
+      }
+
+      // Small helper to avoid naive innerHTML injection issues with attribute text
+      escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
+    }
+
+    // Register the custom element: the browser now knows that any
+    // <user-card> tag it finds should be upgraded into a UserCard instance.
+    customElements.define('user-card', UserCard);
+  </script>
+
+</body>
+</html>

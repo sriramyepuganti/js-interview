@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Structured Data (schema.org) + ARIA Landmark Roles Demo</title>
+
+  <!-- ============================================================
+       JSON-LD structured data: fully decoupled from the visible
+       markup below. Google's Rich Results Test / structured data
+       tooling reads exactly this kind of block. This is the
+       MODERN, recommended way to add structured data (vs. microdata
+       attributes woven into the HTML, shown further down).
+       ============================================================ -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": "Wireless Noise-Cancelling Headphones",
+    "image": "https://picsum.photos/id/367/400/300",
+    "description": "Over-ear headphones with 30-hour battery life.",
+    "offers": {
+      "@type": "Offer",
+      "priceCurrency": "USD",
+      "price": "199.99",
+      "availability": "https://schema.org/InStock"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.6",
+      "reviewCount": "128"
+    }
+  }
+  </script>
+
+  <style>
+    * { box-sizing: border-box; font-family: system-ui, sans-serif; }
+    body { max-width: 700px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+    h1 { font-size: 1.4rem; }
+    h2 { font-size: 1.1rem; margin-top: 2.5rem; border-bottom: 1px solid #ddd; padding-bottom: 0.25rem; }
+
+    header, nav, main, aside, footer, .region {
+      border: 1px dashed #999;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1rem;
+      position: relative;
+    }
+    header::before, nav::before, main::before, aside::before, footer::before, .region::before {
+      content: attr(data-landmark-label);
+      position: absolute;
+      top: -0.7rem;
+      left: 0.75rem;
+      background: #fff;
+      padding: 0 0.4rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #2b6cb0;
+    }
+
+    .product-card {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 1rem;
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+    .product-card img { width: 140px; border-radius: 6px; }
+    .price { font-size: 1.2rem; font-weight: 700; color: #2f855a; }
+    .rating { color: #b7791f; font-weight: 600; }
+
+    code { background: #eee; padding: 0 4px; border-radius: 4px; }
+    .note {
+      background: #fff8e1;
+      border: 1px solid #f0d98c;
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
+      margin-top: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Structured Data + ARIA Landmark Roles</h1>
+
+  <!-- ============================================================
+       PART 1: Landmark regions. Each dashed box below is labeled
+       with the ARIA landmark role it carries IMPLICITLY just from
+       using the real semantic tag — no `role="..."` attribute
+       needed anywhere on this page. Try a screen reader's landmark
+       navigation (e.g. VoiceOver Rotor, NVDA "D" key) to jump
+       between these regions directly.
+       ============================================================ -->
+  <h2>Part 1: ARIA Landmark Roles (via semantic tags)</h2>
+
+  <header data-landmark-label="role=banner (implicit from <header>)">
+    <strong>Site Header</strong> — logo + site title would go here.
+  </header>
+
+  <nav aria-label="Primary" data-landmark-label='role=navigation, aria-label="Primary"'>
+    <strong>Primary Navigation</strong> — <a href="#part2">Home</a> | <a href="#part2">Shop</a> | <a href="#part2">Contact</a>
+  </nav>
+
+  <main data-landmark-label="role=main (implicit from <main>)">
+    <strong>Main Content</strong> — the page's one unique content area (the product card in Part 2 lives here in a real page).
+
+    <aside aria-label="Related products" data-landmark-label='role=complementary, aria-label="Related products"'>
+      <strong>Aside (inside main)</strong> — "you might also like" content, tangential to the main content.
+    </aside>
+  </main>
+
+  <div role="region" aria-label="Newsletter signup" class="region" data-landmark-label='role=region, aria-label="Newsletter signup"'>
+    <strong>Generic labeled region</strong> — used when no dedicated landmark tag fits, but the section is still important enough to expose as a jump-to target.
+  </div>
+
+  <nav aria-label="Footer" data-landmark-label='role=navigation, aria-label="Footer" (2nd nav, distinguishable by its label)'>
+    <strong>Footer Navigation</strong> — <a href="#part2">Privacy</a> | <a href="#part2">Terms</a>
+  </nav>
+
+  <footer data-landmark-label="role=contentinfo (implicit from <footer>)">
+    <strong>Site Footer</strong> — &copy; 2026 Demo Store. All rights reserved.
+  </footer>
+
+  <p class="note">
+    Notice there are <strong>two</strong> <code>&lt;nav&gt;</code> elements above — each got a distinct
+    <code>aria-label</code> ("Primary" / "Footer") so a screen reader user jumping through
+    landmarks can tell them apart instead of hearing "navigation" twice with no context.
+  </p>
+
+  <!-- ============================================================
+       PART 2: Structured data. This product card is marked up
+       TWICE conceptually: once via the JSON-LD <script> above
+       (invisible, machine-readable only), and once via microdata
+       attributes directly on these visible elements below (the
+       older approach — still valid, still worth recognizing).
+       ============================================================ -->
+  <h2 id="part2">Part 2: Structured Data (schema.org)</h2>
+  <p>
+    This exact product is described twice: once as JSON-LD (view page source —
+    it's the <code>&lt;script type="application/ld+json"&gt;</code> block in
+    <code>&lt;head&gt;</code>, completely invisible on screen), and once below
+    using microdata attributes woven directly into the visible markup.
+  </p>
+
+  <div class="product-card" itemscope itemtype="https://schema.org/Product">
+    <img itemprop="image" src="https://picsum.photos/id/367/400/300" alt="Wireless noise-cancelling headphones" width="140" height="105" />
+    <div>
+      <h3 itemprop="name">Wireless Noise-Cancelling Headphones</h3>
+      <p itemprop="description">Over-ear headphones with 30-hour battery life.</p>
+      <div itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+        <span class="price">
+          <span itemprop="priceCurrency" content="USD">$</span><span itemprop="price" content="199.99">199.99</span>
+        </span>
+        <link itemprop="availability" href="https://schema.org/InStock" />
+        <span> — In Stock</span>
+      </div>
+      <div itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating">
+        <span class="rating">&#9733; <span itemprop="ratingValue">4.6</span></span>
+        <span>(<span itemprop="reviewCount">128</span> reviews)</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="note">
+    In production you'd typically pick <strong>one</strong> approach (JSON-LD is
+    Google's recommended default) rather than duplicating both — they're shown
+    together here purely so both syntaxes are visible in one demo.
+  </p>
+
+</body>
+</html>

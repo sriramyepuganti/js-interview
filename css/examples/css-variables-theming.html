@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CSS Variables — Light/Dark Theming Demo</title>
+<style>
+  /* ============================================================
+     CSS CUSTOM PROPERTIES (variables) defined on :root.
+     These are resolved LIVE by the browser -- unlike Sass variables,
+     which get baked into fixed values at build time and can never
+     change afterward. That's why custom properties are the modern
+     way to do runtime theming (no rebuild needed to switch themes).
+     ============================================================ */
+  :root {
+    --bg-color: #ffffff;
+    --text-color: #1a1a1a;
+    --card-bg: #f5f5f5;
+    --accent-color: #3498db;
+    --border-color: #ddd;
+  }
+
+  /* Dark theme overrides -- just REASSIGNS the same variable names.
+     Anything using var(--bg-color) etc. updates automatically the
+     instant this attribute is toggled -- no CSS rebuild, no reload. */
+  [data-theme="dark"] {
+    --bg-color: #121212;
+    --text-color: #f0f0f0;
+    --card-bg: #1e1e1e;
+    --accent-color: #5dade2;
+    --border-color: #333;
+  }
+
+  body {
+    font-family: Arial, sans-serif;
+    background: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 24px;
+    transition: background 0.3s ease, color 0.3s ease; /* smooth theme switch */
+  }
+
+  h1 { font-size: 22px; }
+  p.note { font-size: 13px; opacity: 0.7; }
+
+  .toggle-btn {
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+    max-width: 400px;
+    transition: background 0.3s ease, border-color 0.3s ease;
+  }
+
+  .card h2 { margin-top: 0; font-size: 16px; color: var(--accent-color); }
+
+  code {
+    background: var(--border-color);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+</style>
+</head>
+<body>
+  <h1>CSS Custom Properties — Live Theming Demo</h1>
+  <p class="note">Click the button below. No page reload, no CSS rebuild — just a runtime variable reassignment.</p>
+
+  <button class="toggle-btn" onclick="toggleTheme()">Toggle Dark / Light Theme</button>
+
+  <div class="card">
+    <h2>How this works</h2>
+    <p>
+      All colors here read from <code>var(--bg-color)</code>, <code>var(--text-color)</code>, etc.
+      Toggling <code>data-theme="dark"</code> on the <code>&lt;html&gt;</code> element re-defines those
+      same variable names inside a <code>[data-theme="dark"]</code> selector — every element using
+      <code>var(...)</code> updates instantly because custom properties are resolved live by the browser,
+      not compiled away like Sass <code>$variables</code>.
+    </p>
+  </div>
+
+  <script>
+    // This is the ONE line of JS that makes runtime theming possible --
+    // it just flips an attribute; all the actual color logic lives in CSS.
+    function toggleTheme() {
+      const root = document.documentElement;
+      const isDark = root.getAttribute('data-theme') === 'dark';
+      root.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    }
+  </script>
+</body>
+</html>

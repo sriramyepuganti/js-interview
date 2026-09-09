@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- MANDATORY for responsive design: tells mobile browsers to use the
+     real device width instead of a fake, zoomed-out desktop default.
+     Without this, media queries below won't trigger correctly on phones. -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Responsive / Mobile-First Demo</title>
+<style>
+  /* ============================================================
+     MOBILE-FIRST BASE STYLES
+     These are the simplest styles, meant for the SMALLEST screen.
+     We then use min-width media queries to ADD complexity for
+     bigger screens -- this is the modern, industry-standard approach.
+     ============================================================ */
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 16px;
+    background: #f5f5f5;
+  }
+
+  h1 {
+    /* Fluid typography using clamp(min, preferred, max) --
+       scales smoothly with viewport width, no breakpoint "jumps" */
+    font-size: clamp(1.4rem, 5vw, 2.4rem);
+    margin-top: 0;
+  }
+
+  p.note { font-size: 13px; color: #555; }
+
+  /* Base (mobile) layout: single column, stacked */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr; /* one column on mobile */
+    gap: 12px;
+  }
+
+  .box {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 16px;
+  }
+
+  .sidebar { background: #2c3e50; color: white; }
+
+  /* Responsive image -- prevents overflow on small screens,
+     keeps aspect ratio via height:auto */
+  .responsive-img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 6px;
+  }
+
+  /* ============================================================
+     TABLET AND UP (min-width: 600px)
+     Mobile-first: we ADD a two-column layout here, we don't
+     start from desktop and strip things away.
+     ============================================================ */
+  @media (min-width: 600px) {
+    .layout {
+      grid-template-columns: 200px 1fr; /* sidebar + main content */
+    }
+  }
+
+  /* ============================================================
+     DESKTOP AND UP (min-width: 1000px)
+     Add even more breathing room / three-column card row.
+     ============================================================ */
+  @media (min-width: 1000px) {
+    body { padding: 32px; }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+  }
+  @media (max-width: 999px) {
+    .cards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+
+  /* Respect users who asked their OS to reduce motion -- an
+     accessibility best practice, not just a "nice to have" */
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+
+  .card { background: #eef; border-radius: 6px; padding: 12px; text-align: center; }
+</style>
+</head>
+<body>
+  <h1>Mobile-First Responsive Demo</h1>
+  <p class="note">Resize your browser window (or open DevTools device toolbar) to see the layout change at 600px and 1000px. All breakpoints here use <code>min-width</code> — mobile-first.</p>
+
+  <div class="layout">
+    <div class="box sidebar">
+      Sidebar<br>
+      <small>Full-width on mobile, becomes a fixed 200px column at 600px+</small>
+    </div>
+    <div class="box">
+      <p>Main content area.</p>
+      <img class="responsive-img" src="https://via.placeholder.com/800x300" alt="Placeholder responsive image" onerror="this.style.display='none'">
+      <p class="note"><code>max-width:100%; height:auto;</code> keeps images from overflowing their container.</p>
+    </div>
+  </div>
+
+  <h2 style="font-size:16px; margin-top:32px;">Card Row (1 column on mobile, 3 columns on desktop &ge; 1000px)</h2>
+  <div class="cards">
+    <div class="card">Card 1</div>
+    <div class="card">Card 2</div>
+    <div class="card">Card 3</div>
+  </div>
+</body>
+</html>

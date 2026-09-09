@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Responsive Images (srcset/picture) + innerHTML vs textContent XSS Demo</title>
+
+  <style>
+    * { box-sizing: border-box; font-family: system-ui, sans-serif; }
+    body { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+    h1 { margin-bottom: 0.25rem; }
+    h2 { margin-top: 2.5rem; }
+    .note { font-size: 0.9rem; color: #555; }
+    .panel {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    img, picture img { max-width: 100%; border-radius: 8px; display: block; }
+    .art-direction-demo { width: 100%; aspect-ratio: 16 / 7; object-fit: cover; }
+    code { background: #f2f2f5; padding: 0.1rem 0.3rem; border-radius: 4px; }
+    textarea {
+      width: 100%;
+      min-height: 70px;
+      font-family: monospace;
+      padding: 0.5rem;
+      border: 1px solid #999;
+      border-radius: 4px;
+    }
+    button {
+      padding: 0.4rem 0.9rem;
+      margin: 0.5rem 0.5rem 0.5rem 0;
+      border: none;
+      border-radius: 4px;
+      background: #2b6cb0;
+      color: #fff;
+      cursor: pointer;
+    }
+    button.danger { background: #c53030; }
+    button.safe { background: #2f855a; }
+    .result-box {
+      margin-top: 0.5rem;
+      padding: 0.75rem;
+      background: #f6f6f9;
+      border-radius: 4px;
+      min-height: 2rem;
+      border: 1px dashed #ccc;
+    }
+    .label { font-weight: 600; font-size: 0.85rem; color: #333; margin-top: 0.75rem; }
+  </style>
+</head>
+<body>
+
+  <h1>Responsive Images + innerHTML vs textContent Safety Demo</h1>
+  <p class="note">
+    Two independent demos on one page: (1) native responsive images with
+    <code>srcset</code>/<code>sizes</code>/<code>&lt;picture&gt;</code>, and
+    (2) why <code>innerHTML</code> is an XSS risk with untrusted input, and
+    why <code>textContent</code> is not. See files
+    <code>06-performance-and-seo.md</code> and
+    <code>09-html-topics-you-might-have-missed.md</code> for the full writeups.
+  </p>
+
+  <!-- ================================================================= -->
+  <!-- DEMO 1: Resolution switching with srcset + sizes                   -->
+  <!-- ================================================================= -->
+  <h2>1a. Resolution Switching (<code>srcset</code> + <code>sizes</code>)</h2>
+  <div class="panel">
+    <p class="note">
+      Open DevTools → Network, filter by "Img", then resize this browser
+      window (or use device toolbar to simulate a phone) and reload. Watch
+      which candidate file the browser actually requests — it picks based on
+      viewport width × device pixel ratio, matched against <code>sizes</code>.
+    </p>
+    <img
+      src="https://picsum.photos/id/1015/800/450"
+      srcset="
+        https://picsum.photos/id/1015/400/225   400w,
+        https://picsum.photos/id/1015/800/450   800w,
+        https://picsum.photos/id/1015/1600/900 1600w
+      "
+      sizes="(max-width: 600px) 100vw, 50vw"
+      alt="Scenic mountain lake — resolution-switching demo image"
+      width="800"
+      height="450"
+      loading="lazy"
+    />
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- DEMO 1b: Art direction with <picture>                              -->
+  <!-- ================================================================= -->
+  <h2>1b. Art Direction (<code>&lt;picture&gt;</code> + <code>media</code>)</h2>
+  <div class="panel">
+    <p class="note">
+      This isn't just a smaller version of the same photo — resize the
+      window below ~700px wide and the browser swaps to a completely
+      different, tighter crop meant to work at narrow widths, instead of
+      squeezing the wide shot down into an unreadable sliver.
+    </p>
+    <picture>
+      <source media="(max-width: 700px)" srcset="https://picsum.photos/id/1025/500/700" />
+      <source media="(min-width: 701px)" srcset="https://picsum.photos/id/1025/1400/500" />
+      <img
+        class="art-direction-demo"
+        src="https://picsum.photos/id/1025/1400/500"
+        alt="Art-direction demo: differently cropped image per breakpoint"
+        loading="lazy"
+      />
+    </picture>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- DEMO 2: innerHTML vs textContent XSS                               -->
+  <!-- ================================================================= -->
+  <h2>2. <code>innerHTML</code> vs <code>textContent</code> — the XSS Risk</h2>
+  <div class="panel">
+    <p class="note">
+      Type (or paste) the pre-filled "malicious" payload below, then click
+      each button. It's a harmless, local-only demo payload — it just
+      flashes the page background red via <code>onerror</code> to prove code
+      execution, nothing is sent anywhere. Notice <code>innerHTML</code>
+      actually runs it, while <code>textContent</code> just displays it as
+      plain, inert text.
+    </p>
+
+    <label class="label" for="payload">Untrusted "user input" to render:</label>
+    <textarea id="payload">Nice product! <img src="x" onerror="document.body.style.background='#ffe3e3'; this.insertAdjacentText('afterend',' ⚠️ Injected script just ran via onerror!');"></textarea>
+
+    <div>
+      <button class="danger" onclick="renderUnsafe()">Render with innerHTML (unsafe)</button>
+      <button class="safe" onclick="renderSafe()">Render with textContent (safe)</button>
+      <button onclick="resetDemo()">Reset background</button>
+    </div>
+
+    <div class="label">Rendered output:</div>
+    <div id="output" class="result-box">— nothing rendered yet —</div>
+  </div>
+
+  <script>
+    // ============================================================
+    // DANGEROUS on purpose, for teaching: assigning untrusted input
+    // directly to innerHTML lets embedded markup/attributes (like
+    // onerror=) execute. NEVER do this with real user input in
+    // production without sanitizing first (DOMPurify, or the native
+    // Element.setHTML() sanitizer — see file 09 for details).
+    // ============================================================
+    function renderUnsafe() {
+      const raw = document.getElementById('payload').value;
+      document.getElementById('output').innerHTML = raw; // <-- the risky line
+    }
+
+    // ============================================================
+    // SAFE: textContent never parses the string as HTML. The same
+    // payload just shows up as literal, harmless text on screen.
+    // ============================================================
+    function renderSafe() {
+      const raw = document.getElementById('payload').value;
+      document.getElementById('output').textContent = raw; // <-- always safe
+    }
+
+    function resetDemo() {
+      document.body.style.background = '';
+      document.getElementById('output').textContent = '— nothing rendered yet —';
+    }
+  </script>
+
+</body>
+</html>

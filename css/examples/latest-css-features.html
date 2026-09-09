@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Latest CSS Features — Cascade Layers, Native Nesting, Scroll-Driven Animations</title>
+<style>
+
+  /* ============================================================
+     1) CASCADE LAYERS (@layer)
+     ------------------------------------------------------------
+     We declare the layer ORDER up front. Whichever layer is
+     declared LATER in this list always wins over an earlier
+     layer's rules -- regardless of selector specificity.
+     Order here: reset -> base -> components -> utilities
+     "utilities" is last, so it always beats "components", even
+     though a utility class has lower specificity than a
+     component's compound selector.
+     ============================================================ */
+  @layer reset, base, components, utilities;
+
+  @layer reset {
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+  }
+
+  @layer base {
+    body {
+      font-family: -apple-system, Arial, sans-serif;
+      line-height: 1.5;
+      color: #1a1a1a;
+      background: #fafafa;
+    }
+    h1 { font-size: 1.75rem; margin-bottom: 8px; }
+    h2 { font-size: 1.2rem; margin-bottom: 8px; }
+    p  { margin-bottom: 12px; }
+  }
+
+  @layer components {
+    /* NATIVE CSS NESTING (feature #2) --------------------------------
+       No Sass, no build step -- the browser parses this "&" syntax
+       directly. Compare to how Sass used to require a compiler for
+       exactly this pattern (see file 09 for the Sass comparison). */
+    .card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 20px;
+      margin: 16px 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+
+      /* &:hover compiles conceptually to ".card:hover" */
+      &:hover {
+        border-color: #3498db;
+        box-shadow: 0 4px 10px rgba(52,152,219,0.15);
+      }
+
+      /* nested descendant selector -- ".card h2" */
+      & h2 {
+        color: #2c3e50;
+      }
+
+      /* nested modifier class -- ".card.featured" */
+      &.featured {
+        border-color: gold;
+        background: #fffdf0;
+      }
+
+      /* media queries can nest too */
+      @media (min-width: 640px) {
+        padding: 28px;
+      }
+    }
+
+    /* This selector is MORE specific than .text-brand below
+       (".card h1" = 1 class + 1 element vs. ".text-brand" = 1 class)
+       but it lives in the EARLIER "components" layer, so it will
+       LOSE to .text-brand in the "utilities" layer. This is the
+       cascade-layers demo: layer order beats specificity. */
+    .card h1 {
+      color: #7f8c8d;
+    }
+  }
+
+  @layer utilities {
+    /* Single class, lower specificity than ".card h1" above --
+       but wins anyway (no !important needed) because "utilities"
+       is declared AFTER "components" in the @layer order at the
+       top of this file. Layer order is checked before specificity. */
+    .text-brand {
+      color: #e74c3c;
+    }
+  }
+
+  /* ============================================================
+     Page chrome (unlayered -- unlayered CSS always beats ANY
+     layered CSS, which is why this nav bar styling can't be
+     accidentally overridden by anything inside the layers above)
+     ============================================================ */
+  .intro-banner {
+    background: #2c3e50;
+    color: #fff;
+    padding: 24px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .intro-banner code {
+    background: rgba(255,255,255,0.15);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+
+  /* ============================================================
+     3) SCROLL-DRIVEN ANIMATIONS (animation-timeline)
+     ------------------------------------------------------------
+     Two demos:
+     (a) a reading-progress bar driven by the page's scroll
+         position (scroll-timeline / animation-timeline: scroll())
+     (b) "reveal on scroll" cards that fade + slide in as they
+         enter the viewport (animation-timeline: view())
+     No JS scroll listener, no IntersectionObserver -- the browser
+     computes progress purely from CSS.
+     ============================================================ */
+
+  /* (a) Reading progress bar pinned to the top of the viewport */
+  .progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 6px;
+    width: 100%;
+    background: linear-gradient(to right, #3498db, #9b59b6);
+    transform-origin: left;
+    transform: scaleX(0); /* starting state before animation kicks in */
+
+    animation: grow-progress linear;
+    /* Tie animation progress to how far the document/root has been
+       scrolled, from 0% to 100% of the scroll range. */
+    animation-timeline: scroll(root);
+    z-index: 20;
+  }
+  @keyframes grow-progress {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+  }
+
+  /* (b) Reveal-on-scroll cards */
+  .reveal-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 24px;
+    margin: 40px 0;
+
+    animation: fade-slide-in linear both;
+    /* Tie THIS element's own animation progress to its position as
+       it travels through the viewport (not the whole page's scroll) */
+    animation-timeline: view();
+    /* Start animating right as it enters the viewport, finish by the
+       time it's 40% of the way into view -- so it settles quickly
+       instead of animating the whole scroll journey. */
+    animation-range: entry 0% cover 40%;
+  }
+  @keyframes fade-slide-in {
+    from { opacity: 0; transform: translateY(50px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .spacer {
+    height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-style: italic;
+    border: 1px dashed #ccc;
+    border-radius: 10px;
+    margin: 24px 0;
+  }
+
+  .fallback-note {
+    background: #fff3cd;
+    border: 1px solid #ffe08a;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 14px;
+    margin: 16px 0;
+  }
+
+</style>
+</head>
+<body>
+
+  <!-- Reading progress bar element (feature 3a) -->
+  <div class="progress-bar"></div>
+
+  <div class="intro-banner">
+    <h1>Latest CSS Features Demo</h1>
+    <p>
+      Scroll down to see: <code>@layer</code> (cascade layers),
+      native CSS <code>&amp;</code> nesting, and scroll-driven
+      animations (<code>animation-timeline: scroll()</code> / <code>view()</code>).
+      Best viewed in a recent Chrome/Edge (Chromium 115+).
+    </p>
+  </div>
+
+  <main>
+
+    <div class="fallback-note">
+      <strong>Note:</strong> Scroll-driven animations
+      (<code>animation-timeline</code>) require a modern Chromium browser
+      (Chrome/Edge 115+ for <code>scroll()</code>, 116+ for <code>view()</code>).
+      In unsupported browsers, the progress bar and reveal cards will simply
+      stay in their default (invisible / unscaled) state -- everything else
+      on this page (cascade layers, nesting) still works everywhere.
+    </div>
+
+    <section class="card featured">
+      <h1>1. Cascade Layers (<code>@layer</code>)</h1>
+      <h2 class="text-brand">This heading uses .text-brand</h2>
+      <p>
+        Look at the CSS: <code>.card h1</code> is more specific than
+        <code>.text-brand</code> (an element+descendant selector vs. a
+        single class), but it lives in the earlier <code>components</code>
+        layer. <code>.text-brand</code> lives in the later
+        <code>utilities</code> layer, declared after <code>components</code>
+        in <code>@layer reset, base, components, utilities;</code> at the
+        top of the stylesheet -- so it wins the color, proving layer order
+        beats specificity.
+      </p>
+      <p>This card itself also has a <code>&amp;:hover</code> and
+        <code>&amp;.featured</code> nested rule -- hover over this card
+        to see the border/shadow change (feature 2, native nesting).</p>
+    </section>
+
+    <section class="card">
+      <h2>2. Native CSS Nesting</h2>
+      <p>
+        This <code>.card</code> block styles itself, its nested
+        <code>h2</code>, its <code>:hover</code> state, and its
+        <code>.featured</code> modifier -- all written directly inside
+        one nested rule in plain CSS, no Sass compiler involved.
+      </p>
+    </section>
+
+    <div class="spacer">↓ keep scrolling to trigger the reveal cards below ↓</div>
+
+    <section class="reveal-card">
+      <h2>3. Scroll-Driven Reveal — Card A</h2>
+      <p>
+        This card fades and slides in as it enters the viewport, driven by
+        <code>animation-timeline: view()</code> and
+        <code>animation-range: entry 0% cover 40%</code>. No
+        <code>IntersectionObserver</code>, no scroll event listener --
+        the browser computes this animation's progress purely from this
+        element's position relative to the viewport.
+      </p>
+    </section>
+
+    <div class="spacer">↓ more scrolling ↓</div>
+
+    <section class="reveal-card">
+      <h2>4. Scroll-Driven Reveal — Card B</h2>
+      <p>
+        Same technique, second card. Notice the progress bar at the very
+        top of the page filling up as you scroll -- that one uses
+        <code>animation-timeline: scroll(root)</code>, tied to the whole
+        page's scroll position rather than this individual element's
+        viewport position.
+      </p>
+    </section>
+
+    <div class="spacer" style="height: 40vh;">End of demo</div>
+
+  </main>
+
+</body>
+</html>

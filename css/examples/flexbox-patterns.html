@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Flexbox Patterns</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 0; padding: 24px; background: #f5f5f5; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 16px; margin-top: 48px; border-bottom: 2px solid #ddd; padding-bottom: 6px; }
+  section { margin-bottom: 16px; }
+  p.note { font-size: 13px; color: #555; }
+
+  /* ============================================================
+     PATTERN 1: Centering (horizontally + vertically) with flexbox
+     This single 3-line trick replaced years of vertical-centering hacks.
+     ============================================================ */
+  .center-box {
+    display: flex;
+    justify-content: center; /* centers along the MAIN axis (horizontal, since flex-direction is row by default) */
+    align-items: center;     /* centers along the CROSS axis (vertical) */
+    height: 160px;
+    background: #eef;
+    border: 1px dashed #99a;
+  }
+  .center-box .pill {
+    background: #3498db;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+  }
+
+  /* ============================================================
+     PATTERN 2: Equal-height columns
+     align-items defaults to "stretch", so every flex item automatically
+     matches the height of the tallest sibling -- no JS needed.
+     ============================================================ */
+  .equal-cols {
+    display: flex;
+    gap: 16px;
+  }
+  .equal-cols .col {
+    flex: 1; /* each column grows/shrinks equally -> equal WIDTH */
+    background: white;
+    border: 1px solid #ddd;
+    padding: 16px;
+    /* height is NOT set -- flex "stretch" (the default align-items value) equalizes it */
+  }
+
+  /* ============================================================
+     PATTERN 3: Navbar (logo left, links right, vertically centered)
+     ============================================================ */
+  .navbar {
+    display: flex;
+    justify-content: space-between; /* push logo and nav-links apart */
+    align-items: center;            /* vertically align them */
+    background: #2c3e50;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 6px;
+  }
+  .navbar .logo { font-weight: bold; font-size: 18px; }
+  .navbar .links { display: flex; gap: 20px; list-style: none; margin: 0; padding: 0; }
+  .navbar .links a { color: white; text-decoration: none; }
+  .navbar .links a:hover { text-decoration: underline; }
+
+  /* ============================================================
+     PATTERN 4: Sticky footer
+     The page container is a flex COLUMN with min-height: 100vh.
+     "main" gets flex:1, so it grows to push the footer to the bottom
+     even when there isn't enough content to fill the screen.
+     ============================================================ */
+  .page-frame {
+    display: flex;
+    flex-direction: column;
+    min-height: 240px; /* normally 100vh, shrunk here so it fits in the demo page */
+    border: 1px dashed #99a;
+  }
+  .page-frame header { background: #34495e; color: white; padding: 10px; }
+  .page-frame main { flex: 1; padding: 16px; background: #fff; } /* grows to fill remaining space */
+  .page-frame footer { background: #34495e; color: white; padding: 10px; text-align: center; }
+
+  /* ============================================================
+     PATTERN 5: Wrapping card row with gap
+     ============================================================ */
+  .card-row {
+    display: flex;
+    flex-wrap: wrap; /* allow cards to drop to the next line when they don't fit */
+    gap: 16px;
+  }
+  .card-row .card {
+    flex: 1 1 160px; /* grow, shrink, but PREFER 160px -- wraps once too narrow */
+    background: white;
+    border: 1px solid #ddd;
+    padding: 16px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+  <h1>Flexbox Patterns Cheat-Sheet</h1>
+
+  <section>
+    <h2>1. Centering (both axes)</h2>
+    <div class="center-box">
+      <div class="pill">Perfectly centered</div>
+    </div>
+    <p class="note"><code>display:flex; justify-content:center; align-items:center;</code></p>
+  </section>
+
+  <section>
+    <h2>2. Equal-height / equal-width columns</h2>
+    <div class="equal-cols">
+      <div class="col">Short content</div>
+      <div class="col">This column has a lot more text in it, which naturally makes it taller than the others.</div>
+      <div class="col">Medium amount of content here</div>
+    </div>
+    <p class="note">Each <code>.col</code> has <code>flex: 1</code>. Height equalizes automatically via the default <code>align-items: stretch</code>.</p>
+  </section>
+
+  <section>
+    <h2>3. Navbar (space-between)</h2>
+    <div class="navbar">
+      <div class="logo">MyApp</div>
+      <ul class="links">
+        <li><a href="#">Home</a></li>
+        <li><a href="#">About</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </div>
+    <p class="note"><code>justify-content: space-between</code> pushes logo and links to opposite ends; <code>align-items: center</code> vertically aligns them.</p>
+  </section>
+
+  <section>
+    <h2>4. Sticky Footer</h2>
+    <div class="page-frame">
+      <header>Header</header>
+      <main>Main content (try imagining this is short — footer still sticks to bottom)</main>
+      <footer>Footer always at the bottom</footer>
+    </div>
+    <p class="note"><code>flex-direction: column</code> on the wrapper + <code>flex: 1</code> on <code>main</code>.</p>
+  </section>
+
+  <section>
+    <h2>5. Wrapping Card Row</h2>
+    <div class="card-row">
+      <div class="card">Card 1</div>
+      <div class="card">Card 2</div>
+      <div class="card">Card 3</div>
+      <div class="card">Card 4</div>
+      <div class="card">Card 5</div>
+    </div>
+    <p class="note">Resize the browser window narrower to see cards wrap to new lines. <code>flex: 1 1 160px</code> + <code>flex-wrap: wrap</code>.</p>
+  </section>
+</body>
+</html>

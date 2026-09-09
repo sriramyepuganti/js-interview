@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IndexedDB CRUD Demo</title>
+  <style>
+    * { box-sizing: border-box; font-family: system-ui, sans-serif; }
+    body { max-width: 600px; margin: 2rem auto; padding: 0 1rem; }
+    .row { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
+    input { flex: 1; padding: 0.5rem; border: 1px solid #999; border-radius: 4px; }
+    button {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 4px;
+      background: #2b6cb0;
+      color: #fff;
+      cursor: pointer;
+    }
+    button.danger { background: #c53030; }
+    ul { list-style: none; padding: 0; }
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 0.5rem 0.75rem;
+      margin-bottom: 0.4rem;
+    }
+    .status { font-family: monospace; color: #555; margin-top: 1rem; min-height: 1.2rem; }
+  </style>
+</head>
+<body>
+
+  <h1>IndexedDB CRUD Demo</h1>
+  <p>A minimal notes app backed entirely by IndexedDB — refresh the page and your notes are still there.</p>
+
+  <div class="row">
+    <input id="noteInput" type="text" placeholder="Write a note..." />
+    <button onclick="addNote()">Add</button>
+  </div>
+
+  <ul id="noteList"></ul>
+  <div class="status" id="status"></div>
+
+  <script>
+    // ------------------------------------------------------------------
+    // 1. OPEN (or create) THE DATABASE
+    // ------------------------------------------------------------------
+    const DB_NAME = 'notesAppDB';
+    const DB_VERSION = 1;
+    const STORE_NAME = 'notes';
+
+    let db; // will hold the open database connection once ready
+
+    const openRequest = indexedDB.open(DB_NAME, DB_VERSION);
+
+    // Fires ONLY when the database is created for the first time, or when
+    // DB_VERSION is increased — this is where you define/migrate your schema.
+    openRequest.onupgradeneeded = (event) => {
+      const database = event.target.result;
+
+      // Create an object store (think: a "table") with an auto-incrementing key
+      // called "id" — we don't need to supply the id ourselves when adding notes.
+      const store = database.createObjectStore(STORE_NAME, {
+        keyPath: 'id',
+        autoIncrement: true,
+      });
+
+      // An index lets us query/sort by a field other than the primary key later
+      store.createIndex('byCreatedAt', 'createdAt', { unique: false });
+
+      setStatus('Database schema created.');
+    };
+
+    openRequest.onsuccess = (event) => {
+      db = event.target.result;
+      setStatus('Database ready.');
+      renderNotes(); // load and display any notes saved from a previous visit
+    };
+
+    openRequest.onerror = (event) => {
+      setStatus('Failed to open database: ' + event.target.error.message);
+    };
+
+    // ------------------------------------------------------------------
+    // Small helper: every read/write needs a transaction scoped to the
+    // object store(s) it touches, with a mode of 'readonly' or 'readwrite'.
+    // ------------------------------------------------------------------
+    function getStore(mode) {
+      const transaction = db.transaction(STORE_NAME, mode);
+      return transaction.objectStore(STORE_NAME);
+    }
+
+    // ------------------------------------------------------------------
+    // 2. CREATE — add a new note
+    // ------------------------------------------------------------------
+    function addNote() {
+      const input = document.getElementById('noteInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const store = getStore('readwrite');
+      const request = store.add({ text, createdAt: new Date().toISOString() });
+
+      request.onsuccess = () => {
+        input.value = '';
+        setStatus('Note added.');
+        renderNotes(); // re-read from the DB to refresh the UI
+      };
+      request.onerror = () => setStatus('Failed to add note.');
+    }
+
+    // ------------------------------------------------------------------
+    // 3. READ — fetch all notes using a cursor
+    // ------------------------------------------------------------------
+    function renderNotes() {
+      const store = getStore('readonly');
+      const notes = [];
+
+      // getAll() would also work here for simple cases, but a cursor is shown
+      // because it's the more general pattern for filtering/paginating large stores.
+      const cursorRequest = store.openCursor();
+
+      cursorRequest.onsuccess = (event) => {
+        const cursor = event.target.result;
+        if (cursor) {
+          notes.push(cursor.value);
+          cursor.continue(); // move to the next record
+        } else {
+          // no more records — cursor is done, render what we collected
+          renderList(notes);
+        }
+      };
+
+      cursorRequest.onerror = () => setStatus('Failed to read notes.');
+    }
+
+    function renderList(notes) {
+      const list = document.getElementById('noteList');
+      list.innerHTML = '';
+
+      notes.forEach((note) => {
+        const li = document.createElement('li');
+
+        const span = document.createElement('span');
+        span.textContent = note.text;
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.className = 'danger';
+        deleteBtn.onclick = () => deleteNote(note.id);
+
+        li.append(span, deleteBtn);
+        list.appendChild(li);
+      });
+    }
+
+    // ------------------------------------------------------------------
+    // 4. DELETE — remove a note by its key
+    // ------------------------------------------------------------------
+    function deleteNote(id) {
+      const store = getStore('readwrite');
+      const request = store.delete(id);
+
+      request.onsuccess = () => {
+        setStatus('Note deleted.');
+        renderNotes();
+      };
+      request.onerror = () => setStatus('Failed to delete note.');
+    }
+
+    // (UPDATE would use store.put({...existingNote, text: newText}) with the
+    // same id — put() overwrites the record with a matching key, add() would fail.)
+
+    function setStatus(message) {
+      document.getElementById('status').textContent = message;
+    }
+  </script>
+
+</body>
+</html>

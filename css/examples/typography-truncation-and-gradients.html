@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Text Truncation, Gradients, vertical-align, currentColor</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 24px; background: #f5f5f5; max-width: 700px; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 16px; margin-top: 40px; }
+  .note { font-size: 13px; color: #555; }
+  code { background: #eee; padding: 2px 6px; border-radius: 4px; }
+
+  /* ============================================================
+     @font-face -- CONCEPTUAL block. No font file is actually shipped
+     with this demo (that's a real network asset in production), so the
+     browser silently falls back to the next font in the stack below.
+     A variable font would instead declare font-weight: 100 900 (a RANGE)
+     in a single @font-face rule, covering every weight in one file.
+     ============================================================ */
+  @font-face {
+    font-family: "Demo Variable Font";
+    src: url("demo-font-not-shipped.woff2") format("woff2-variations");
+    font-weight: 100 900; /* a RANGE -- this is what makes it "variable" */
+    font-display: swap;   /* show the fallback immediately, swap in once/if it loads */
+  }
+  .font-face-demo {
+    font-family: "Demo Variable Font", Arial, sans-serif; /* falls back to Arial here, on purpose */
+  }
+
+  /* ============================================================
+     TEXT TRUNCATION -- single line ellipsis
+     ALL THREE of these are required together. Removing any one of
+     them breaks the effect -- try commenting one out in devtools.
+     ============================================================ */
+  .card {
+    width: 260px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 16px;
+    background: white;
+    margin-bottom: 12px;
+  }
+  .truncate-title {
+    white-space: nowrap;      /* 1. force a single line */
+    overflow: hidden;         /* 2. clip whatever overflows */
+    text-overflow: ellipsis;  /* 3. show "…" at the clip point */
+    font-weight: bold;
+  }
+
+  /* Multi-line clamp -- truncate after exactly 3 lines */
+  .truncate-body {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-clamp: 3; /* standard property, growing support */
+    font-size: 14px;
+    color: #444;
+    margin: 0;
+  }
+
+  /* ============================================================
+     GRADIENTS
+     ============================================================ */
+  .gradient-linear {
+    height: 60px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #3498db, #8e44ad);
+  }
+  .gradient-radial {
+    height: 60px;
+    border-radius: 8px;
+    background: radial-gradient(circle at top left, #ffffff, #3498db 70%);
+  }
+  .gradient-conic-progress {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    /* conic-gradient: the standard trick for a CSS-only circular progress ring.
+       0% to 75% is the "filled" color, 75% to 100% is the "empty" track color. */
+    background: conic-gradient(#3498db 0% 75%, #eee 75% 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #333;
+  }
+  .gradient-conic-progress::before {
+    content: "75%";
+    background: white;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .hero-overlay {
+    position: relative;
+    height: 140px;
+    border-radius: 8px;
+    color: white;
+    display: flex;
+    align-items: flex-end;
+    padding: 16px;
+    font-weight: bold;
+    /* Layering a dark gradient OVER a photo-like background so white
+       text stays legible regardless of what's underneath. */
+    background:
+      linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.75)),
+      linear-gradient(135deg, #f39c12, #e74c3c 60%, #8e44ad);
+  }
+
+  /* ============================================================
+     vertical-align -- aligns INLINE content to its line box.
+     It does NOT vertically center block-level elements (a common trap).
+     ============================================================ */
+  .icon-text-row .icon {
+    display: inline-block;
+    width: 18px; height: 18px;
+    background: #3498db;
+    border-radius: 4px;
+    vertical-align: middle; /* try changing to "top" or "text-bottom" to see it shift */
+  }
+
+  /* ============================================================
+     currentColor -- border/fill automatically track the text color
+     ============================================================ */
+  .icon-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #3498db;                    /* set the color ONCE */
+    border: 2px solid currentColor;     /* border matches it automatically */
+    background: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .icon-button svg { fill: currentColor; width: 14px; height: 14px; } /* SVG icon matches too */
+  .icon-button:hover { color: #e74c3c; } /* border AND svg fill update automatically on hover */
+</style>
+</head>
+<body>
+  <h1>Text Truncation, Gradients, vertical-align, currentColor</h1>
+
+  <h2>@font-face / Variable Fonts (conceptual)</h2>
+  <p class="font-face-demo">This text requests "Demo Variable Font" (font-weight: 100–900 range declared in @font-face), but since no font file ships with this demo, it safely falls back to Arial — open DevTools → Network to confirm the failed font request, and see file 13 for the real-world pattern.</p>
+
+  <h2>Text Truncation</h2>
+  <div class="card">
+    <div class="truncate-title">This card title is intentionally way too long to fit on one line</div>
+    <p class="truncate-body">This body paragraph has a lot of filler content so you can see it get cut off after exactly three lines, with an ellipsis appearing on the third line instead of the text simply overflowing the card's fixed width and height.</p>
+  </div>
+  <p class="note">Remove <code>white-space: nowrap</code> or <code>overflow: hidden</code> from <code>.truncate-title</code> in DevTools to see the ellipsis stop working.</p>
+
+  <h2>Gradients</h2>
+  <div class="gradient-linear"></div><br>
+  <div class="gradient-radial"></div><br>
+  <div class="gradient-conic-progress"></div><br>
+  <div class="hero-overlay">Hero heading text stays legible over any background</div>
+
+  <h2>vertical-align (inline alignment, not block centering)</h2>
+  <p class="icon-text-row"><span class="icon"></span> Icon aligned to the middle of this text's line box.</p>
+
+  <h2>currentColor</h2>
+  <button class="icon-button">
+    <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/></svg>
+    Hover me
+  </button>
+</body>
+</html>

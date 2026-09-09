@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lazy Loading + Resource Hints Demo</title>
+
+  <!--
+    ================= RESOURCE HINTS (in <head>) =================
+    These tell the browser about resources it will need BEFORE it would
+    normally discover them while parsing the page, so it can start
+    fetching earlier.
+  -->
+
+  <!--
+    preload: "I will definitely need this SOON — fetch it now, high priority."
+    Use for the LCP (Largest Contentful Paint) candidate or critical font,
+    i.e. something visible immediately that the browser wouldn't otherwise
+    discover until later (e.g. a background-image only referenced in CSS).
+  -->
+  <link
+    rel="preload"
+    as="image"
+    href="https://picsum.photos/id/1015/1200/500"
+  />
+
+  <!--
+    preconnect: "I'll be talking to this third-party origin soon — do the
+    DNS + TCP + TLS handshake now, so the real request later is instant."
+    Here we preconnect to the image CDN we're using for all the demo images.
+  -->
+  <link rel="preconnect" href="https://picsum.photos" crossorigin />
+
+  <!--
+    prefetch: "I probably need this for the NEXT page — fetch it quietly,
+    low priority, whenever the browser is idle." (Demo target below doesn't
+    really exist, this just shows the syntax.)
+  -->
+  <link rel="prefetch" href="next-page-demo.html" />
+
+  <style>
+    * { box-sizing: border-box; font-family: system-ui, sans-serif; }
+    body { max-width: 700px; margin: 2rem auto; padding: 0 1rem; }
+
+    .hero {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+      border-radius: 10px;
+      display: block;
+      margin-bottom: 1rem;
+    }
+
+    .gallery img {
+      width: 100%;
+      /* Reserving space via aspect-ratio BEFORE the image loads prevents
+         layout shift (bad for CLS) once the lazy image finally arrives. */
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      background: #eee; /* visible placeholder color while loading */
+    }
+
+    .spacer {
+      height: 1200px; /* forces the gallery below the fold so lazy-loading is visible while scrolling */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #888;
+      border: 1px dashed #ccc;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Lazy Loading Images Demo</h1>
+
+  <p>
+    The hero image below loads <strong>immediately</strong> (it's above the
+    fold, and we preloaded it in &lt;head&gt;). Scroll down and open DevTools
+    → Network to watch the gallery images below only start downloading as
+    they approach the viewport.
+  </p>
+
+  <!--
+    loading="eager" (the default) — explicit here for clarity.
+    This is the LCP candidate: NEVER lazy-load the hero/above-the-fold image,
+    it would delay your Largest Contentful Paint score.
+    width/height are set to prevent layout shift before the image loads.
+  -->
+  <img
+    class="hero"
+    src="https://picsum.photos/id/1015/1200/500"
+    alt="Scenic mountain lake, used as the above-the-fold hero image"
+    loading="eager"
+    width="1200"
+    height="500"
+  />
+
+  <div class="spacer">Scroll down to see lazy-loaded images ↓</div>
+
+  <h2>Photo Gallery (lazy-loaded)</h2>
+  <div class="gallery">
+    <!--
+      loading="lazy": the browser will NOT download these until the user
+      scrolls near them. This saves bandwidth and speeds up initial load,
+      since a real gallery might have dozens of these.
+      width/height (or aspect-ratio in CSS, used here) still matter —
+      without reserved space, the page would jump around as each image
+      pops in, hurting CLS.
+    -->
+    <img
+      src="https://picsum.photos/id/1025/600/450"
+      alt="A dog looking at the camera"
+      loading="lazy"
+      width="600"
+      height="450"
+    />
+    <img
+      src="https://picsum.photos/id/1035/600/450"
+      alt="A misty forest path"
+      loading="lazy"
+      width="600"
+      height="450"
+    />
+    <img
+      src="https://picsum.photos/id/1045/600/450"
+      alt="A city street at night"
+      loading="lazy"
+      width="600"
+      height="450"
+    />
+    <img
+      src="https://picsum.photos/id/1055/600/450"
+      alt="A rocky coastline"
+      loading="lazy"
+      width="600"
+      height="450"
+    />
+  </div>
+
+  <!--
+    loading="lazy" also works on iframes — useful for embedded video
+    players or maps far down the page.
+  -->
+  <h2>Lazy-loaded iframe example</h2>
+  <iframe
+    src="about:blank"
+    title="Example lazy-loaded embed (placeholder)"
+    loading="lazy"
+    width="600"
+    height="300"
+    style="border: 1px solid #ccc; border-radius: 8px;"
+  ></iframe>
+
+</body>
+</html>

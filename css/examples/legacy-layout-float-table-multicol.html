@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Float/Clear, display:contents, Multi-Column, Tables</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 24px; background: #f5f5f5; max-width: 760px; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 16px; margin-top: 40px; }
+  .note { font-size: 13px; color: #555; }
+  code { background: #eee; padding: 2px 6px; border-radius: 4px; }
+  .box { background: white; border: 1px solid #ddd; border-radius: 8px; padding: 16px; }
+
+  /* ============================================================
+     FLOAT -- the ORIGINAL, still-legitimate job: wrap text around
+     a shape. This is NOT the old "float-based column layout" misuse.
+     ============================================================ */
+  .article-with-float img {
+    float: left;
+    width: 90px; height: 90px;
+    border-radius: 50%;
+    margin: 0 16px 8px 0;
+    background: linear-gradient(135deg, #3498db, #8e44ad);
+  }
+
+  /* ============================================================
+     CLEARFIX -- the classic pre-flow-root fix for a parent collapsing
+     to zero height around floated children.
+     ============================================================ */
+  .old-float-columns {
+    border: 1px dashed #999;
+  }
+  .old-float-columns::after {
+    content: "";
+    display: table;
+    clear: both; /* forces the parent to account for the floated children's height */
+  }
+  .old-float-columns .col {
+    float: left;
+    width: 33.33%;
+    box-sizing: border-box;
+    padding: 8px;
+  }
+  .old-float-columns .col > div {
+    background: #eafaf1;
+    padding: 8px;
+    border-radius: 4px;
+  }
+
+  /* ============================================================
+     display: contents -- "unwraps" a required wrapper div so its
+     children become real grid items, as if the wrapper didn't exist.
+     ============================================================ */
+  .contents-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .contents-grid .unwanted-wrapper {
+    display: contents; /* toggle this off in DevTools to see it break into a single grid item instead */
+  }
+  .contents-grid .grid-item {
+    background: #eaf4fb;
+    border: 1px solid #3498db;
+    border-radius: 6px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  /* ============================================================
+     MULTI-COLUMN LAYOUT -- newspaper-style text reflow
+     ============================================================ */
+  .multicol {
+    column-count: 2;
+    column-gap: 24px;
+    column-rule: 1px solid #ccc;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .multicol h3 { break-inside: avoid; margin-top: 0; } /* don't split a heading across columns */
+
+  /* ============================================================
+     TABLE STYLING -- border-collapse + table-layout: fixed
+     ============================================================ */
+  table {
+    width: 100%;
+    border-collapse: collapse;  /* merges adjacent cell borders instead of doubling them */
+    table-layout: fixed;         /* commits to column widths upfront -- faster, enables safe truncation */
+  }
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis; /* long cell values truncate instead of blowing out the column width */
+  }
+  th { background: #f0f4f8; }
+</style>
+</head>
+<body>
+  <h1>Float/Clear, display:contents, Multi-Column, Tables</h1>
+
+  <h2>Float — original job (wrap text around a shape)</h2>
+  <div class="box article-with-float">
+    <img>
+    <p>This paragraph of text wraps around the floated circular image to its left, exactly the way a magazine layout wraps body copy around a photo or pull-quote. This is the original, still-legitimate use of <code>float</code> — nothing about it is legacy or discouraged.</p>
+  </div>
+
+  <h2>Float — legacy column layout + clearfix</h2>
+  <div class="box old-float-columns">
+    <div class="col"><div>Column 1 (floated)</div></div>
+    <div class="col"><div>Column 2 (floated)</div></div>
+    <div class="col"><div>Column 3 (floated)</div></div>
+  </div>
+  <p class="note">The dashed border correctly wraps all 3 floated columns because of the <code>::after { clear: both }</code> clearfix. Remove it in DevTools to watch the parent collapse to zero height.</p>
+
+  <h2>display: contents</h2>
+  <div class="box">
+    <div class="contents-grid">
+      <div class="unwanted-wrapper">
+        <div class="grid-item">A (inside wrapper)</div>
+        <div class="grid-item">B (inside wrapper)</div>
+      </div>
+      <div class="grid-item">C (direct child)</div>
+    </div>
+  </div>
+  <p class="note">A, B, and C all sit as equal grid items in one row because <code>.unwanted-wrapper</code> uses <code>display: contents</code>. Toggle it to <code>display: block</code> in DevTools to see the wrapper become a single grid item instead, breaking the 3-column layout.</p>
+
+  <h2>Multi-Column Layout</h2>
+  <div class="box multicol">
+    <h3>Reflowing Article Text</h3>
+    <p>This paragraph is long enough to demonstrate multi-column reflow. The browser automatically flows text from the bottom of the first column to the top of the second, the same way a printed newspaper or magazine has always laid out body copy, without any manual splitting into separate elements.</p>
+    <p>Resize the browser window narrower to see the columns collapse behavior change, and note how the heading above never gets awkwardly split across a column break, thanks to <code>break-inside: avoid</code>.</p>
+  </div>
+
+  <h2>Table Styling</h2>
+  <div class="box">
+    <table>
+      <thead>
+        <tr><th style="width:20%">ID</th><th style="width:50%">Description</th><th style="width:30%">Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>001</td><td>A perfectly reasonable length description</td><td>Active</td></tr>
+        <tr><td>002</td><td>This description is deliberately way too long to fit in its fixed-width column and should truncate with an ellipsis instead of distorting the layout</td><td>Pending</td></tr>
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>

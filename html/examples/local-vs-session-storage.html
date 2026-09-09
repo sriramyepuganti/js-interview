@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>localStorage vs sessionStorage Demo</title>
+  <style>
+    * { box-sizing: border-box; font-family: system-ui, sans-serif; }
+    body { max-width: 700px; margin: 2rem auto; padding: 0 1rem; }
+    .panel {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .panel h2 { margin-top: 0; }
+    input { padding: 0.4rem; width: 60%; border: 1px solid #999; border-radius: 4px; }
+    button {
+      padding: 0.4rem 0.9rem;
+      margin-left: 0.5rem;
+      border: none;
+      border-radius: 4px;
+      background: #2b6cb0;
+      color: #fff;
+      cursor: pointer;
+    }
+    button.secondary { background: #718096; }
+    button.danger { background: #c53030; }
+    .output {
+      margin-top: 0.75rem;
+      padding: 0.5rem;
+      background: #f6f6f9;
+      border-radius: 4px;
+      font-family: monospace;
+      min-height: 1.5rem;
+    }
+    .note { font-size: 0.85rem; color: #555; }
+  </style>
+</head>
+<body>
+
+  <h1>localStorage vs sessionStorage</h1>
+  <p class="note">
+    Tip: open this same page in a second tab to see the difference —
+    localStorage values show up in both tabs, sessionStorage values only
+    exist in the tab that created them.
+  </p>
+
+  <!-- ============ localStorage panel ============ -->
+  <section class="panel">
+    <h2>localStorage</h2>
+    <p class="note">Persists until explicitly cleared. Shared across all tabs of this origin.</p>
+
+    <input id="localInput" type="text" placeholder="Type a value to save" />
+    <button onclick="setLocal()">Set</button>
+    <button class="secondary" onclick="getLocal()">Get</button>
+    <button class="danger" onclick="clearLocal()">Clear</button>
+
+    <div class="output" id="localOutput">— nothing read yet —</div>
+  </section>
+
+  <!-- ============ sessionStorage panel ============ -->
+  <section class="panel">
+    <h2>sessionStorage</h2>
+    <p class="note">Cleared automatically when this tab/window is closed. Not shared with other tabs.</p>
+
+    <input id="sessionInput" type="text" placeholder="Type a value to save" />
+    <button onclick="setSession()">Set</button>
+    <button class="secondary" onclick="getSession()">Get</button>
+    <button class="danger" onclick="clearSession()">Clear</button>
+
+    <div class="output" id="sessionOutput">— nothing read yet —</div>
+  </section>
+
+  <script>
+    // The key we use to store a single demo value in each storage type
+    const STORAGE_KEY = 'demoValue';
+
+    // ---------- localStorage handlers ----------
+    function setLocal() {
+      const value = document.getElementById('localInput').value;
+      // setItem only accepts strings — objects must be JSON.stringify'd first
+      localStorage.setItem(STORAGE_KEY, value);
+      document.getElementById('localOutput').textContent = `Saved: "${value}"`;
+    }
+
+    function getLocal() {
+      const value = localStorage.getItem(STORAGE_KEY); // returns null if not set
+      document.getElementById('localOutput').textContent =
+        value !== null ? `Current value: "${value}"` : 'No value stored.';
+    }
+
+    function clearLocal() {
+      localStorage.removeItem(STORAGE_KEY); // removeItem clears just this key
+      // localStorage.clear() would wipe EVERYTHING for this origin — use with care
+      document.getElementById('localOutput').textContent = 'Cleared.';
+    }
+
+    // ---------- sessionStorage handlers (same API shape as localStorage) ----------
+    function setSession() {
+      const value = document.getElementById('sessionInput').value;
+      sessionStorage.setItem(STORAGE_KEY, value);
+      document.getElementById('sessionOutput').textContent = `Saved: "${value}"`;
+    }
+
+    function getSession() {
+      const value = sessionStorage.getItem(STORAGE_KEY);
+      document.getElementById('sessionOutput').textContent =
+        value !== null ? `Current value: "${value}"` : 'No value stored.';
+    }
+
+    function clearSession() {
+      sessionStorage.removeItem(STORAGE_KEY);
+      document.getElementById('sessionOutput').textContent = 'Cleared.';
+    }
+
+    // On page load, show whatever is already stored (demonstrates persistence
+    // across refreshes for localStorage, and per-tab lifetime for sessionStorage)
+    window.addEventListener('load', () => {
+      getLocal();
+      getSession();
+    });
+  </script>
+
+</body>
+</html>

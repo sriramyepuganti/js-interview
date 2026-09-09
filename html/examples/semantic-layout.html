@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Semantic Layout Example</title>
+  <style>
+    /* Basic visual styling only — the point of this file is the HTML structure below, not the CSS */
+    * { box-sizing: border-box; font-family: system-ui, sans-serif; }
+    body { margin: 0; color: #1a1a1a; }
+
+    header, footer { background: #1a1a2e; color: #fff; padding: 1rem 2rem; }
+    header nav a { color: #fff; margin-right: 1rem; text-decoration: none; }
+    header nav a:hover { text-decoration: underline; }
+
+    /* Layout: main content + aside side by side using CSS grid */
+    .page-body {
+      display: grid;
+      grid-template-columns: 3fr 1fr;
+      gap: 1.5rem;
+      padding: 1.5rem 2rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    article { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; }
+    aside { background: #f6f6f9; border-radius: 8px; padding: 1rem; }
+    section { margin-bottom: 1.5rem; }
+    footer { text-align: center; font-size: 0.9rem; }
+
+    @media (max-width: 640px) {
+      .page-body { grid-template-columns: 1fr; } /* stack on small screens */
+    }
+  </style>
+</head>
+<body>
+
+  <!--
+    HEADER: introductory content for the whole page.
+    Holds branding + the primary site navigation.
+    There is exactly ONE page-level header here.
+  -->
+  <header>
+    <h1>My Tech Blog</h1>
+    <nav aria-label="Primary">
+      <!-- nav = a block of major navigation links, not just any list of links -->
+      <a href="#home">Home</a>
+      <a href="#articles">Articles</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <div class="page-body">
+
+    <!--
+      MAIN: the one unique, dominant content area of this page.
+      Only one <main> is allowed per page, and it should not be nested
+      inside <header>, <footer>, <article>, or <aside>.
+    -->
+    <main>
+      <!--
+        ARTICLE: self-contained content that would make sense on its own
+        if pulled out of this page entirely (like an RSS feed item).
+      -->
+      <article>
+        <header>
+          <!--
+            Nested <header> is valid here — it's the header for THIS
+            article specifically (title + meta), not the page.
+          -->
+          <h2>Why Semantic HTML Still Matters in 2026</h2>
+          <p><time datetime="2026-09-01">September 1, 2026</time> · 6 min read</p>
+        </header>
+
+        <!--
+          SECTION: a themed sub-part of the article, with its own heading.
+          Ask: "is this a distinct chunk of the larger article?" If yes, section.
+        -->
+        <section>
+          <h3>Accessibility</h3>
+          <p>
+            Screen readers rely on semantic tags to build a navigable outline
+            of the page, letting users jump straight to the main content.
+          </p>
+        </section>
+
+        <section>
+          <h3>SEO</h3>
+          <p>
+            Search engines weigh content inside <code>&lt;article&gt;</code> and
+            <code>&lt;main&gt;</code> more meaningfully than generic
+            <code>&lt;div&gt;</code> soup.
+          </p>
+        </section>
+
+        <footer>
+          <!-- Footer scoped to THIS article: e.g. author info, tags -->
+          <p>Tags: html, accessibility, seo</p>
+        </footer>
+      </article>
+    </main>
+
+    <!--
+      ASIDE: related but secondary content — NOT part of the main flow.
+      Common real use: sidebars, "related posts", ad slots.
+    -->
+    <aside aria-label="Related content">
+      <h2>Related Posts</h2>
+      <ul>
+        <li><a href="#">Understanding the DOM</a></li>
+        <li><a href="#">ARIA basics for beginners</a></li>
+        <li><a href="#">Core Web Vitals explained</a></li>
+      </ul>
+    </aside>
+  </div>
+
+  <!--
+    FOOTER: closing content for the whole page.
+    This is the page-level footer (as opposed to the article-level one above).
+  -->
+  <footer>
+    <p>&copy; 2026 My Tech Blog. All rights reserved.</p>
+  </footer>
+
+</body>
+</html>

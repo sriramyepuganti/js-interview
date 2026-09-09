@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Latest HTML Features Demo: dialog + Popover + Invoker Commands</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 640px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      line-height: 1.5;
+    }
+    h1 { font-size: 1.4rem; }
+    h2 { font-size: 1.1rem; margin-top: 2.5rem; border-bottom: 1px solid #ddd; padding-bottom: 0.25rem; }
+    button {
+      font: inherit;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      border: 1px solid #888;
+      background: #f5f5f5;
+      cursor: pointer;
+    }
+    button:hover { background: #ececec; }
+    .note {
+      background: #fff8e1;
+      border: 1px solid #f0d98c;
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
+    }
+    code { background: #eee; padding: 0 4px; border-radius: 4px; }
+
+    /* ============================================================
+       <dialog> styling — you style it like any normal element.
+       ::backdrop is a special pseudo-element the browser creates
+       automatically behind a dialog opened with .showModal().
+       ============================================================ */
+    dialog {
+      border: none;
+      border-radius: 10px;
+      padding: 1.5rem;
+      max-width: 360px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+    }
+    dialog::backdrop {
+      background: rgba(0, 0, 20, 0.5);
+      backdrop-filter: blur(2px);
+    }
+    dialog form { display: flex; flex-direction: column; gap: 0.75rem; }
+    dialog .dialog-actions { display: flex; gap: 0.5rem; justify-content: flex-end; }
+
+    /* ============================================================
+       Popover styling — a [popover] element is hidden by default
+       (display: none under the hood) until shown. It renders in the
+       browser's "top layer", so normal stacking-context/overflow
+       rules on ancestors don't clip or bury it.
+       ============================================================ */
+    [popover] {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 1rem;
+      max-width: 260px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Simple styling for our custom counter widget, built with the
+       Invoker Commands API's custom "--" command syntax. */
+    .counter-widget {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
+    }
+    .counter-value { font-size: 1.25rem; font-weight: 700; min-width: 2ch; text-align: center; }
+  </style>
+</head>
+<body>
+
+  <h1>Latest HTML Platform Features Demo</h1>
+  <p>
+    Three of the newest, most interview-relevant native HTML features, working
+    together with <strong>zero external JS libraries</strong>:
+    <code>&lt;dialog&gt;</code>, the <strong>Popover API</strong>, and the brand-new
+    <strong>Invoker Commands API</strong> (<code>command</code>/<code>commandfor</code>).
+  </p>
+  <p class="note">
+    Requires a recent Chromium browser (Chrome/Edge 135+) for the Invoker Commands
+    section — it's very new (2025). <code>&lt;dialog&gt;</code> and the Popover API
+    work in all modern browsers.
+  </p>
+
+  <!-- ================================================================
+       1. NATIVE <dialog> — a native modal element.
+       showModal() gives us, for free: a ::backdrop, focus trapped inside
+       the dialog, Escape-to-close, and correct a11y semantics
+       (role="dialog", implicit aria-modal="true"). No JS focus-trap
+       library needed.
+       ================================================================ -->
+  <h2>1. Native &lt;dialog&gt; (modal)</h2>
+  <p>Opened the traditional way, with a JS click handler calling <code>.showModal()</code>:</p>
+
+  <button id="openDialogBtn">Open confirmation dialog</button>
+
+  <dialog id="confirmDialog">
+    <!--
+      method="dialog" on the form means submitting it just closes the
+      dialog and sets dialog.returnValue to the value of whichever
+      button was clicked — no page reload, no JS needed to close it.
+    -->
+    <form method="dialog">
+      <p>Delete this item? This can't be undone.</p>
+      <div class="dialog-actions">
+        <button value="cancel">Cancel</button>
+        <button value="confirm" autofocus>Delete</button>
+      </div>
+    </form>
+  </dialog>
+
+  <p id="dialogResult"></p>
+
+  <!-- ================================================================
+       2. POPOVER API — a native dropdown/tooltip mechanism.
+       popovertarget links the button to the element with matching id.
+       popovertargetaction="toggle" means clicking the button toggles
+       the popover open/closed. No JS at all is needed for this to work.
+       The popover auto-closes on outside click or Escape (light-dismiss),
+       and renders in the browser's "top layer" so it's never clipped by
+       an ancestor's overflow:hidden or buried by z-index.
+       ================================================================ -->
+  <h2>2. Popover API (zero JS)</h2>
+  <p>This dropdown opens/closes with pure HTML attributes — no JavaScript:</p>
+
+  <button popovertarget="infoPopover" popovertargetaction="toggle">
+    Show info popover
+  </button>
+
+  <div id="infoPopover" popover>
+    <strong>No JS here!</strong>
+    <p>
+      This box is a native <code>[popover]</code> element. Click outside it,
+      or press <kbd>Escape</kbd>, and it closes automatically — that's
+      "light-dismiss," built into the browser.
+    </p>
+  </div>
+
+  <!-- ================================================================
+       3. INVOKER COMMANDS API — command/commandfor attributes.
+       This is the newest piece (2025): a button can declaratively
+       control another element's behavior using just HTML attributes.
+
+       3a. Built-in commands: opening/closing our SAME <dialog> above,
+           and toggling our SAME popover above — but with ZERO JS
+           event listeners this time, just command="..." commandfor="...".
+       3b. A custom command ("--increment") demonstrates how you can
+           build fully custom declarative widgets, listening for the
+           "command" event in JS only to handle the app-specific logic.
+       ================================================================ -->
+  <h2>3. Invoker Commands API (<code>command</code> / <code>commandfor</code>)</h2>
+
+  <p><strong>3a. Built-in commands</strong> — opening the dialog and toggling the popover from above, but with <em>zero JavaScript event listeners</em> this time:</p>
+
+  <p>
+    <!-- Built-in command "show-modal" targets our <dialog id="confirmDialog"> from section 1 -->
+    <button command="show-modal" commandfor="confirmDialog">
+      Open same dialog (no JS)
+    </button>
+    <!-- Built-in command "toggle-popover" targets our popover from section 2 -->
+    <button command="toggle-popover" commandfor="infoPopover">
+      Toggle same popover (no JS)
+    </button>
+  </p>
+
+  <p><strong>3b. Custom command</strong> — a fully declarative counter widget. The buttons declare <em>what</em> they do (<code>command="--increment"</code>); JS only supplies <em>how</em>, via a single "command" event listener on the target:</p>
+
+  <div class="counter-widget" id="counterWidget" data-count="0">
+    <button command="--decrement" commandfor="counterWidget">−1</button>
+    <span class="counter-value" id="counterValue">0</span>
+    <button command="--increment" commandfor="counterWidget">+1</button>
+  </div>
+
+  <p class="note" id="commandFallbackNote" hidden>
+    Your browser doesn't support the Invoker Commands API yet (it's very new —
+    2025). Sections 1 and 2 above still work fully via traditional JS, since
+    they don't rely on <code>command</code>/<code>commandfor</code>.
+  </p>
+
+  <script>
+    // ==================================================================
+    // 1. Native <dialog> — traditional JS wiring (works everywhere)
+    // ==================================================================
+    const confirmDialog = document.getElementById('confirmDialog');
+    const dialogResult = document.getElementById('dialogResult');
+
+    document.getElementById('openDialogBtn').addEventListener('click', () => {
+      // showModal(): traps focus inside the dialog, renders ::backdrop,
+      // and blocks interaction with the rest of the page (equivalent to
+      // the page content becoming `inert` automatically).
+      confirmDialog.showModal();
+    });
+
+    // The dialog's built-in "close" event fires whenever it closes, no
+    // matter how it was closed (button click, Escape key, or JS .close()).
+    confirmDialog.addEventListener('close', () => {
+      dialogResult.textContent = confirmDialog.returnValue
+        ? `Dialog closed with: "${confirmDialog.returnValue}"`
+        : 'Dialog was dismissed (e.g. via Escape) with no button value.';
+    });
+
+    // ==================================================================
+    // 2. Popover API — note there is NO JS needed for open/close;
+    // popovertarget + popovertargetaction on the button handle it all.
+    // This script block is only here to prove that point via a console log.
+    // ==================================================================
+    const infoPopover = document.getElementById('infoPopover');
+    infoPopover.addEventListener('toggle', (event) => {
+      // Popovers fire a native "toggle" event with newState: "open" | "closed"
+      console.log('Popover state changed to:', event.newState);
+    });
+
+    // ==================================================================
+    // 3b. Invoker Commands API — CUSTOM command handling.
+    // Built-in commands (show-modal, toggle-popover above) need NO JS
+    // at all. Custom commands (prefixed with "--") fire a "command"
+    // event on the target element, which we listen for here.
+    // ==================================================================
+    const counterWidget = document.getElementById('counterWidget');
+    const counterValue = document.getElementById('counterValue');
+
+    if ('command' in HTMLButtonElement.prototype || window.CommandEvent) {
+      counterWidget.addEventListener('command', (event) => {
+        // event.command is the string after "command=" on the button
+        // that was activated, e.g. "--increment" or "--decrement".
+        let count = Number(counterWidget.dataset.count);
+
+        if (event.command === '--increment') count += 1;
+        if (event.command === '--decrement') count -= 1;
+
+        counterWidget.dataset.count = count;
+        counterValue.textContent = count;
+      });
+    } else {
+      // Feature detection fallback: Invoker Commands is very new (2025).
+      // Show a note and disable the section 3 buttons gracefully.
+      document.getElementById('commandFallbackNote').hidden = false;
+      document.querySelectorAll('[command]').forEach((btn) => {
+        btn.disabled = true;
+        btn.title = 'Invoker Commands API not supported in this browser';
+      });
+    }
+  </script>
+
+</body>
+</html>

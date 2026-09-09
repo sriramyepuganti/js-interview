@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Animations &amp; Transitions Demo</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 0; padding: 24px; background: #f5f5f5; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 16px; margin-top: 48px; border-bottom: 2px solid #ddd; padding-bottom: 6px; }
+  p.note { font-size: 13px; color: #555; }
+  .row { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+
+  /* ============================================================
+     1. TRANSITION -- animates between two states, needs a trigger
+        (here, :hover). Only knows start -> end, no in-between steps.
+     ============================================================ */
+  .btn {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    /* Animate transform + box-shadow, NOT top/left/width --
+       transform/opacity can run on the compositor (GPU), skipping
+       layout recalculation, so it's smooth and cheap. */
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+  }
+  .btn:hover {
+    background: #2980b9;
+    transform: translateY(-2px); /* lifts up slightly on hover */
+    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+  }
+  .btn:active {
+    transform: translateY(0); /* pressed-down feel on click */
+  }
+
+  /* ============================================================
+     2. ANIMATION + @keyframes -- self-running, multi-step,
+        does NOT need a trigger, and can loop forever.
+     ============================================================ */
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+  .spinner {
+    width: 36px;
+    height: 36px;
+    border: 4px solid #eee;
+    border-top-color: #3498db; /* only one side colored -> creates the "spin" illusion */
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite; /* runs forever, no trigger needed */
+  }
+
+  /* Pulsing "new" badge -- multi-step keyframes (0% -> 50% -> 100%) */
+  @keyframes pulse {
+    0%   { transform: scale(1);   opacity: 1; }
+    50%  { transform: scale(1.15); opacity: 0.7; }
+    100% { transform: scale(1);   opacity: 1; }
+  }
+  .badge-pulse {
+    display: inline-block;
+    background: #e74c3c;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+
+  /* Skeleton loading shimmer -- common real-world "loading state" pattern */
+  @keyframes shimmer {
+    0%   { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+  }
+  .skeleton {
+    width: 220px;
+    height: 16px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #eee 25%, #ddd 50%, #eee 75%);
+    background-size: 400px 100%;
+    animation: shimmer 1.2s linear infinite;
+  }
+
+  /* ============================================================
+     3. Card entrance animation using transform + opacity
+        (compositor-only properties -> smooth even on low-end devices)
+     ============================================================ */
+  @keyframes slideInFade {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .entrance-card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 16px;
+    width: 220px;
+    animation: slideInFade 0.5s ease-out;
+  }
+
+  /* Respect users who've asked their OS to reduce motion */
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+</style>
+</head>
+<body>
+  <h1>Animations &amp; Transitions Demo</h1>
+
+  <h2>1. Transition (hover-triggered, A -&gt; B only)</h2>
+  <div class="row">
+    <button class="btn">Hover / click me</button>
+  </div>
+  <p class="note"><code>transition: transform 0.15s, box-shadow 0.15s;</code> — needs <code>:hover</code>/<code>:active</code> to trigger. Animates <code>transform</code>, not <code>top</code>/<code>left</code>, for smoothness.</p>
+
+  <h2>2. Animation + @keyframes (self-running, loops)</h2>
+  <div class="row">
+    <div class="spinner"></div>
+    <span>Loading spinner — <code>animation: spin 0.8s linear infinite;</code>, no trigger needed.</span>
+  </div>
+  <div class="row">
+    <span class="badge-pulse">NEW</span>
+    <span>Pulsing badge — multi-step <code>@keyframes</code> (0% → 50% → 100%).</span>
+  </div>
+  <div class="row">
+    <div class="skeleton"></div>
+    <span>Skeleton loading shimmer — common real-world "content loading" placeholder.</span>
+  </div>
+
+  <h2>3. Entrance Animation (transform + opacity — GPU-friendly)</h2>
+  <div class="entrance-card">
+    This card animates in with <code>opacity</code> + <code>transform</code> only — both can be
+    handled by the compositor, skipping layout/paint, so it stays smooth even on low-end devices.
+  </div>
+</body>
+</html>

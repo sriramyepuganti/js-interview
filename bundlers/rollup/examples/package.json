@@ -1,0 +1,19 @@
+{
+  "name": "rollup-config-reference-example",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Reference rollup.config.js for interview study — not meant to be installed/run, just a correct, well-commented example of bundling a small library into multiple formats.",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "unpkg": "dist/index.umd.min.js",
+  "sideEffects": false,
+  "scripts": {
+    "build": "rollup -c"
+  },
+  "devDependencies": {
+    "rollup": "^4.14.0",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-terser": "^0.4.4"
+  }
+}

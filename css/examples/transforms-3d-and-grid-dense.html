@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>3D Transforms (Card Flip) and grid-auto-flow: dense</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 24px; background: #f5f5f5; max-width: 760px; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 16px; margin-top: 40px; }
+  .note { font-size: 13px; color: #555; }
+  code { background: #eee; padding: 2px 6px; border-radius: 4px; }
+
+  /* ============================================================
+     3D TRANSFORMS -- card flip
+     Needs THREE supporting properties to look real:
+     perspective (on the wrapper), transform-style: preserve-3d
+     (shared 3D space), and backface-visibility: hidden (hide the
+     rotated-away face so you don't see a mirrored version of it).
+     ============================================================ */
+  .flip-card {
+    width: 200px;
+    height: 260px;
+    perspective: 1000px; /* the "camera distance" -- smaller = more dramatic depth */
+  }
+  .flip-card-inner {
+    position: relative;
+    width: 100%; height: 100%;
+    transform-style: preserve-3d; /* let .front and .back share the same 3D space */
+    transition: transform 0.6s;
+  }
+  .flip-card:hover .flip-card-inner {
+    transform: rotateY(180deg);
+  }
+  .flip-card-front, .flip-card-back {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden; /* hide each face once it's rotated away from the viewer */
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 16px;
+    text-align: center;
+    padding: 16px;
+    box-sizing: border-box;
+  }
+  .flip-card-front { background: linear-gradient(135deg, #3498db, #2c3e50); }
+  .flip-card-back {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    transform: rotateY(180deg); /* pre-rotated so it's "facing away" until the parent flips */
+  }
+
+  /* ============================================================
+     GRID-AUTO-FLOW: DENSE -- masonry-like bento grid packing
+     ============================================================ */
+  .bento {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: 80px;
+    grid-auto-flow: row dense; /* backfills gaps left by spanning items */
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .bento .tile {
+    background: #eaf4fb;
+    border: 1px solid #3498db;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: #2c3e50;
+  }
+  .bento .featured {
+    grid-column: span 2;
+    grid-row: span 2;
+    background: #fdecea;
+    border-color: #e74c3c;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+  <h1>3D Transforms (Card Flip) and grid-auto-flow: dense</h1>
+
+  <h2>3D Card Flip — hover the card</h2>
+  <div class="flip-card">
+    <div class="flip-card-inner">
+      <div class="flip-card-front">Front<br>(hover to flip)</div>
+      <div class="flip-card-back">Back<br>(backface-visibility: hidden hides the mirrored front here)</div>
+    </div>
+  </div>
+  <p class="note">Try removing <code>backface-visibility: hidden</code> in DevTools mid-flip to see the mirrored, backwards front face show through.</p>
+
+  <h2>grid-auto-flow: dense (bento grid)</h2>
+  <div class="bento">
+    <div class="tile">1</div>
+    <div class="tile featured">Featured<br>(span 2×2)</div>
+    <div class="tile">2</div>
+    <div class="tile">3</div>
+    <div class="tile">4</div>
+    <div class="tile">5</div>
+    <div class="tile">6</div>
+  </div>
+  <p class="note">Tile "3" backfills into the gap next to the featured 2×2 tile instead of the browser leaving that slot empty and pushing everything else forward. Change <code>grid-auto-flow: row dense</code> to just <code>row</code> in DevTools to see the gap reappear.</p>
+</body>
+</html>

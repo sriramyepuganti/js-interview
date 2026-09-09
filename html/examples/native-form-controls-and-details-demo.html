@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Native Form Controls + Details/Summary + Global Attributes Demo</title>
+  <style>
+    * { box-sizing: border-box; font-family: system-ui, sans-serif; }
+    body { max-width: 640px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+    h1 { font-size: 1.4rem; }
+    h2 { font-size: 1.1rem; margin-top: 2.5rem; border-bottom: 1px solid #ddd; padding-bottom: 0.25rem; }
+    label { display: block; font-weight: 600; margin-top: 1rem; }
+    select, textarea, input {
+      width: 100%; padding: 0.5rem; margin-top: 0.25rem;
+      border: 1px solid #999; border-radius: 4px; font: inherit;
+    }
+    .hint { font-size: 0.85rem; color: #555; margin-top: 0.25rem; }
+    output { display: inline-block; font-weight: 700; margin-left: 0.5rem; }
+
+    progress, meter { width: 100%; margin-top: 0.5rem; }
+
+    details {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin-top: 0.5rem;
+    }
+    details > summary { cursor: pointer; font-weight: 600; }
+    details[open] > summary { color: #2b6cb0; }
+
+    [contenteditable="true"] {
+      border: 1px dashed #888;
+      border-radius: 6px;
+      padding: 0.75rem;
+      margin-top: 0.5rem;
+      min-height: 60px;
+      background: #fffef5;
+    }
+    [contenteditable="true"]:focus { outline: 2px solid #2b6cb0; }
+
+    .note {
+      background: #fff8e1;
+      border: 1px solid #f0d98c;
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Native Form Controls, &lt;details&gt;, and Global Attributes</h1>
+  <p>Everything on this page works natively, without any JavaScript framework — open DevTools and inspect how little JS is actually required.</p>
+
+  <!-- ============================================================
+       select + optgroup: a native, keyboard/screen-reader-friendly
+       dropdown. On mobile, the browser swaps in its own OS picker UI.
+       ============================================================ -->
+  <h2>&lt;select&gt; + &lt;optgroup&gt;</h2>
+  <label for="country">Country</label>
+  <select id="country" name="country" autocomplete="country">
+    <optgroup label="North America">
+      <option value="us">United States</option>
+      <option value="ca">Canada</option>
+    </optgroup>
+    <optgroup label="Europe">
+      <option value="de">Germany</option>
+      <option value="fr" selected>France</option>
+    </optgroup>
+  </select>
+
+  <!-- ============================================================
+       textarea: multi-line free text. maxlength limits characters,
+       rows sets the VISIBLE height (not a hard limit).
+       ============================================================ -->
+  <h2>&lt;textarea&gt;</h2>
+  <label for="bio">Short bio (max 120 characters)</label>
+  <textarea id="bio" name="bio" rows="3" maxlength="120" placeholder="Tell us about yourself..."></textarea>
+
+  <!-- ============================================================
+       datalist: unlike <select>, the user can type ANY value —
+       these are just suggestions, not a closed list.
+       ============================================================ -->
+  <h2>&lt;datalist&gt; (suggestions, not a closed list)</h2>
+  <label for="browser">Favorite browser (try typing something not listed)</label>
+  <input id="browser" name="browser" list="browserOptions" />
+  <datalist id="browserOptions">
+    <option value="Chrome"></option>
+    <option value="Firefox"></option>
+    <option value="Safari"></option>
+    <option value="Edge"></option>
+  </datalist>
+
+  <!-- ============================================================
+       output: semantically marks the RESULT of a calculation,
+       linked back to the input that produced it via `for`.
+       oninput recalculates live as the quantity changes.
+       ============================================================ -->
+  <h2>&lt;output&gt; (live calculated result)</h2>
+  <label for="qty">Quantity (unit price: $9.99)</label>
+  <input
+    id="qty"
+    name="qty"
+    type="number"
+    value="1"
+    min="1"
+    max="99"
+    oninput="totalOut.value = '$' + (Number(qty.value) * 9.99).toFixed(2)"
+  />
+  Total: <output id="totalOut" name="totalOut" for="qty">$9.99</output>
+
+  <!-- ============================================================
+       progress: task completion. meter: a value within a range.
+       They are NOT interchangeable — meter is a gauge, not a task bar.
+       ============================================================ -->
+  <h2>&lt;progress&gt; vs &lt;meter&gt;</h2>
+  <label for="uploadProgress">File upload progress (task completion)</label>
+  <progress id="uploadProgress" value="70" max="100">70%</progress>
+
+  <label for="pwStrength">Password strength (a gauge, not "how much is done")</label>
+  <meter id="pwStrength" value="6" min="0" max="10" low="3" high="8" optimum="10">6 out of 10</meter>
+
+  <!-- ============================================================
+       details/summary: native accordion, zero JS for open/close.
+       Shared `name` groups them so opening one closes the others
+       (supported in newer browsers; degrades gracefully to
+       independent accordions in older ones).
+       ============================================================ -->
+  <h2>&lt;details&gt; / &lt;summary&gt; (native accordion)</h2>
+  <details name="faq-group" open>
+    <summary>What is your return policy?</summary>
+    <p>You can return any item within 30 days for a full refund.</p>
+  </details>
+  <details name="faq-group">
+    <summary>How long does shipping take?</summary>
+    <p>Orders ship within 2 business days and arrive in 3-5 more.</p>
+  </details>
+  <details name="faq-group">
+    <summary>Do you ship internationally?</summary>
+    <p>Yes, to over 40 countries. Duties/taxes are calculated at checkout.</p>
+  </details>
+  <p id="toggleLog" class="hint"></p>
+
+  <!-- ============================================================
+       contenteditable: turns this div into an editable rich-text
+       area with zero JS. Click inside and start typing.
+       ============================================================ -->
+  <h2>contenteditable (the primitive behind rich-text editors)</h2>
+  <div contenteditable="true" spellcheck="true">
+    Click here and start typing — this whole &lt;div&gt; is editable.
+    Try pasting some bold text from another app to see how "messy"
+    the resulting HTML can get (open DevTools → Elements to inspect it).
+  </div>
+  <p class="note">
+    Real WYSIWYG editors (Google Docs-style) build heavy sanitization and
+    normalization logic on top of this raw <code>contenteditable</code>
+    primitive — they don't trust its output directly.
+  </p>
+
+  <!-- ============================================================
+       autofocus + accesskey: two more global attributes worth
+       knowing, used sparingly and deliberately.
+       ============================================================ -->
+  <h2>autofocus + accesskey</h2>
+  <label for="searchBox">
+    This input is auto-focused on page load (try refreshing the page)
+  </label>
+  <input id="searchBox" type="search" autofocus placeholder="Search..." />
+
+  <p class="hint">
+    The button below has <code>accesskey="s"</code> — try
+    <kbd>Alt+S</kbd> (Windows/Linux) or <kbd>Ctrl+Alt+S</kbd> (some Mac
+    browsers) to activate it without clicking. Support/modifier keys vary
+    by browser and OS, which is exactly why <code>accesskey</code> is used
+    sparingly in production.
+  </p>
+  <button accesskey="s" onclick="alert('Saved!')">Save (Alt+S)</button>
+
+  <script>
+    // toggle event fires on EVERY <details> whenever it opens or closes —
+    // useful for analytics, or lazily loading content only when expanded.
+    document.querySelectorAll('details').forEach((details) => {
+      details.addEventListener('toggle', () => {
+        const summaryText = details.querySelector('summary').textContent;
+        document.getElementById('toggleLog').textContent =
+          `"${summaryText}" is now ${details.open ? 'open' : 'closed'}.`;
+      });
+    });
+  </script>
+
+</body>
+</html>

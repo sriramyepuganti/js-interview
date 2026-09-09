@@ -1,0 +1,17 @@
+/* Tiny reference stylesheet — imported from src/index.js.
+   In dev, style-loader injects this via a <style> tag at runtime.
+   In production, MiniCssExtractPlugin extracts this into a real,
+   separately-cacheable .css file instead. */
+
+body {
+  font-family: sans-serif;
+  background-color: #f5f5f5;
+  color: #222;
+  margin: 0;
+  padding: 2rem;
+}
+
+#root {
+  font-size: 1.25rem;
+  font-weight: 600;
+}

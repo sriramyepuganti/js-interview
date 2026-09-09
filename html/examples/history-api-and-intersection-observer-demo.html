@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>History API (mini SPA router) + Intersection Observer Demo</title>
+  <style>
+    * { box-sizing: border-box; font-family: system-ui, sans-serif; }
+    body { max-width: 640px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+    h1 { font-size: 1.4rem; }
+    h2 { font-size: 1.1rem; margin-top: 2.5rem; border-bottom: 1px solid #ddd; padding-bottom: 0.25rem; }
+    nav { display: flex; gap: 0.75rem; margin: 1rem 0; }
+    nav a {
+      padding: 0.4rem 0.8rem;
+      border: 1px solid #888;
+      border-radius: 6px;
+      text-decoration: none;
+      color: #222;
+    }
+    nav a.active { background: #2b6cb0; color: #fff; border-color: #2b6cb0; }
+    #routeView {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 1rem;
+      min-height: 80px;
+    }
+    .log {
+      font-family: ui-monospace, monospace;
+      font-size: 0.8rem;
+      background: #f5f5f5;
+      border-radius: 6px;
+      padding: 0.5rem 0.75rem;
+      max-height: 140px;
+      overflow-y: auto;
+      margin-top: 0.5rem;
+    }
+    .spacer { height: 500px; display: flex; align-items: center; justify-content: center; color: #888; border: 1px dashed #ccc; border-radius: 8px; margin: 1rem 0; }
+    .observed-card {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 2rem 1rem;
+      margin-bottom: 1rem;
+      background: #fafafa;
+      opacity: 0.2;
+      transform: translateY(20px);
+      transition: opacity 0.4s, transform 0.4s;
+    }
+    .observed-card.visible { opacity: 1; transform: translateY(0); background: #e6f3ff; }
+    #sentinel { text-align: center; color: #888; padding: 1rem; }
+  </style>
+</head>
+<body>
+
+  <h1>History API + Intersection Observer Demo</h1>
+
+  <!-- ============================================================
+       PART 1: History API — a tiny client-side router.
+       Clicking these links does NOT reload the page; pushState
+       changes the URL and history stack, and we manually re-render
+       #routeView based on the new path. The browser's real Back/
+       Forward buttons will correctly move between these "pages"
+       because popstate fires and we re-render from location.pathname.
+       ============================================================ -->
+  <h2>Part 1: History API (mini SPA router)</h2>
+  <p>
+    Click the links below, then use your browser's real Back/Forward
+    buttons — notice the page never reloads, but the URL and content
+    both update correctly.
+  </p>
+
+  <nav id="routerNav">
+    <a href="/home" data-route="/home">Home</a>
+    <a href="/about" data-route="/about">About</a>
+    <a href="/contact" data-route="/contact">Contact</a>
+  </nav>
+
+  <div id="routeView"></div>
+  <div class="log" id="historyLog">History events will appear here...</div>
+
+  <script>
+    const routes = {
+      '/home': '<h3>Home</h3><p>Welcome! This content was rendered by JS after a pushState call — no network request happened.</p>',
+      '/about': '<h3>About</h3><p>This mini-router is ~15 lines of JS: pushState on click, popstate on Back/Forward.</p>',
+      '/contact': '<h3>Contact</h3><p>hello@example.com</p>',
+    };
+
+    const routeView = document.getElementById('routeView');
+    const historyLog = document.getElementById('historyLog');
+    const navLinks = document.querySelectorAll('#routerNav a');
+
+    function logEvent(message) {
+      const line = document.createElement('div');
+      line.textContent = `${new Date().toLocaleTimeString()} — ${message}`;
+      historyLog.prepend(line);
+    }
+
+    function renderRoute(path) {
+      routeView.innerHTML = routes[path] || '<p>404 — not found (demo only)</p>';
+      navLinks.forEach((link) => {
+        link.classList.toggle('active', link.dataset.route === path);
+      });
+    }
+
+    navLinks.forEach((link) => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault(); // stop the browser's default full-page navigation
+        const path = link.dataset.route;
+
+        // Change the URL + add a history entry, WITHOUT reloading the page
+        history.pushState({ path }, '', path);
+        logEvent(`pushState → ${path}`);
+        renderRoute(path);
+      });
+    });
+
+    // Fires ONLY on real Back/Forward navigation (or history.back()/forward()),
+    // never for our own pushState calls above — so we render here too.
+    window.addEventListener('popstate', (event) => {
+      const path = event.state ? event.state.path : location.pathname;
+      logEvent(`popstate → ${path} (Back/Forward button used)`);
+      renderRoute(path in routes ? path : '/home');
+    });
+
+    // Initial render based on whatever the URL happens to be on load
+    renderRoute(routes[location.pathname] ? location.pathname : '/home');
+  </script>
+
+  <!-- ============================================================
+       PART 2: Intersection Observer — scroll down to see cards
+       fade/slide in as they enter the viewport, and watch the
+       "sentinel" trigger a simulated infinite-scroll "load more".
+       ============================================================ -->
+  <h2>Part 2: Intersection Observer (scroll-triggered reveal + infinite scroll)</h2>
+  <p>Scroll down. Cards fade in as they cross into the viewport — no <code>scroll</code> event listener involved.</p>
+
+  <div class="spacer">Scroll down ↓</div>
+
+  <div id="cardContainer">
+    <div class="observed-card">Card 1 — watch me fade in</div>
+    <div class="observed-card">Card 2 — watch me fade in</div>
+    <div class="observed-card">Card 3 — watch me fade in</div>
+  </div>
+
+  <div id="sentinel">Loading more cards as you approach this line...</div>
+
+  <script>
+    // --- 2a. Fade-in reveal observer ---
+    const revealObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            revealObserver.unobserve(entry.target); // only needs to trigger once
+          }
+        });
+      },
+      { threshold: 0.3 } // fire once 30% of the card is visible
+    );
+
+    document.querySelectorAll('.observed-card').forEach((card) => revealObserver.observe(card));
+
+    // --- 2b. Infinite-scroll sentinel observer ---
+    const sentinel = document.getElementById('sentinel');
+    const cardContainer = document.getElementById('cardContainer');
+    let cardCount = 3;
+    let loadsRemaining = 3; // stop after a few loads so the demo page doesn't grow forever
+
+    const infiniteScrollObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && loadsRemaining > 0) {
+            loadsRemaining--;
+            // Simulate an API call fetching "the next page"
+            setTimeout(() => {
+              for (let i = 0; i < 2; i++) {
+                cardCount++;
+                const card = document.createElement('div');
+                card.className = 'observed-card';
+                card.textContent = `Card ${cardCount} — lazily added by IntersectionObserver`;
+                cardContainer.appendChild(card);
+                revealObserver.observe(card); // new cards also get the fade-in treatment
+              }
+              if (loadsRemaining === 0) {
+                sentinel.textContent = 'No more cards (demo limit reached).';
+              }
+            }, 400);
+          }
+        });
+      },
+      { rootMargin: '0px 0px 200px 0px' } // start loading slightly BEFORE the sentinel is fully visible
+    );
+
+    infiniteScrollObserver.observe(sentinel);
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Specificity Puzzles</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 0; padding: 24px; background: #f5f5f5; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 15px; margin-top: 36px; }
+  .puzzle { background: white; border: 1px solid #ddd; border-radius: 6px; padding: 16px; margin-bottom: 20px; }
+  .puzzle .result { font-weight: bold; padding: 10px; border-radius: 4px; margin-top: 10px; }
+  .explain { font-size: 13px; color: #555; margin-top: 8px; }
+  pre { background: #f0f0f0; padding: 10px; border-radius: 4px; font-size: 12px; overflow-x: auto; }
+
+  /* ==================================================================
+     PUZZLE 1: Element vs Class
+     .highlight (0,0,1,0) beats p (0,0,0,1) -- class beats element,
+     regardless of source order (class is written FIRST here but still wins).
+     ================================================================== */
+  .puzzle1 .highlight { color: blue; }   /* specificity: (0,0,1,0) -- WINS */
+  .puzzle1 p { color: red; }              /* specificity: (0,0,0,1) -- loses, even though written LATER */
+
+  /* ==================================================================
+     PUZZLE 2: ID vs multiple classes
+     A single ID ALWAYS beats any number of stacked classes.
+     #winner (0,1,0,0) beats .a.b.c (0,0,3,0) even though .a.b.c
+     has three classes stacked and is written after.
+     ================================================================== */
+  .puzzle2 .a.b.c { color: red; }         /* specificity: (0,0,3,0) */
+  .puzzle2 #winner { color: green; }      /* specificity: (0,1,0,0) -- WINS: ID beats any number of classes */
+
+  /* ==================================================================
+     PUZZLE 3: Source order tie-break (equal specificity)
+     Both rules are a single class selector -- IDENTICAL specificity (0,0,1,0).
+     The rule declared LATER in the file wins purely by source order.
+     ================================================================== */
+  .puzzle3 .tag { color: red; }           /* specificity: (0,0,1,0) -- loses (written first) */
+  .puzzle3 .tag { color: purple; }        /* specificity: (0,0,1,0) -- WINS (written later, same score) */
+
+  /* ==================================================================
+     PUZZLE 4: :not() counts as its argument's specificity
+     li:not(.skip) is specificity of "li" (element) + ".skip" (class)
+     = (0,0,1,1) -- beats a plain li (0,0,0,1).
+     ================================================================== */
+  .puzzle4 li { color: red; }                 /* specificity: (0,0,0,1) */
+  .puzzle4 li:not(.skip) { color: teal; }     /* specificity: (0,0,1,1) -- WINS on non-.skip items */
+
+  /* ==================================================================
+     PUZZLE 5: !important overrides normal specificity entirely
+     Even though #strong-id (0,1,0,0) is far more specific than
+     .weak-but-important (0,0,1,0), the !important flag jumps it
+     to a higher tier that beats ANY normal declaration.
+     ================================================================== */
+  .puzzle5 #strong-id { color: red; }                          /* specificity (0,1,0,0), but no !important */
+  .puzzle5 .weak-but-important { color: orange !important; }   /* specificity (0,0,1,0), but !important -- WINS */
+
+  /* ==================================================================
+     PUZZLE 6: :where() contributes ZERO specificity
+     :where(.card, .panel) counts as nothing -- so the whole selector's
+     specificity is just "h2" (0,0,0,1), easily beaten by a single class.
+     ================================================================== */
+  .puzzle6 :where(.card, .panel) h2 { color: red; }   /* specificity: (0,0,0,1) -- just "h2" */
+  .puzzle6 .override-me { color: green; }              /* specificity: (0,0,1,0) -- WINS, beats the :where() rule */
+</style>
+</head>
+<body>
+  <h1>Specificity Puzzles</h1>
+  <p>Each box below has two conflicting rules. Inspect the element in DevTools to confirm which rule actually applies, then read the explanation.</p>
+
+  <div class="puzzle puzzle1">
+    <h2>Puzzle 1: Class vs Element</h2>
+    <pre>.highlight { color: blue; }
+p { color: red; }</pre>
+    <p class="highlight">This text should be BLUE.</p>
+    <div class="explain">A class (0,0,1,0) always beats a plain element selector (0,0,0,1), no matter the source order.</div>
+  </div>
+
+  <div class="puzzle puzzle2">
+    <h2>Puzzle 2: ID vs Three Stacked Classes</h2>
+    <pre>.a.b.c { color: red; }
+#winner { color: green; }</pre>
+    <p id="winner" class="a b c">This text should be GREEN.</p>
+    <div class="explain">A single ID (0,1,0,0) beats any number of stacked classes (here, 0,0,3,0) -- compare the ID column first.</div>
+  </div>
+
+  <div class="puzzle puzzle3">
+    <h2>Puzzle 3: Source-Order Tie-Break</h2>
+    <pre>.tag { color: red; }   /* first */
+.tag { color: purple; } /* second, same specificity */</pre>
+    <p class="tag">This text should be PURPLE.</p>
+    <div class="explain">Identical specificity (0,0,1,0) on both rules -- the one written LATER in the CSS wins.</div>
+  </div>
+
+  <div class="puzzle puzzle4">
+    <h2>Puzzle 4: :not() Adds Its Argument's Specificity</h2>
+    <pre>li { color: red; }
+li:not(.skip) { color: teal; }</pre>
+    <ul>
+      <li>This item should be TEAL (not .skip)</li>
+      <li class="skip" style="color:red">This item is red because it HAS .skip, so :not(.skip) doesn't match it -- falls back to the plain "li" rule</li>
+    </ul>
+    <div class="explain"><code>:not(.skip)</code> has the specificity of its argument, so <code>li:not(.skip)</code> = element + class = (0,0,1,1), beating plain <code>li</code> = (0,0,0,1).</div>
+  </div>
+
+  <div class="puzzle puzzle5">
+    <h2>Puzzle 5: !important Beats Higher Specificity</h2>
+    <pre>#strong-id { color: red; }
+.weak-but-important { color: orange !important; }</pre>
+    <p id="strong-id" class="weak-but-important">This text should be ORANGE.</p>
+    <div class="explain">Normally an ID (0,1,0,0) crushes a class (0,0,1,0). But <code>!important</code> jumps the class rule into a higher priority tier that beats ANY normal (non-important) rule, regardless of specificity.</div>
+  </div>
+
+  <div class="puzzle puzzle6">
+    <h2>Puzzle 6: :where() Has Zero Specificity</h2>
+    <pre>:where(.card, .panel) h2 { color: red; }
+.override-me { color: green; }</pre>
+    <div class="card">
+      <h2 class="override-me">This heading should be GREEN.</h2>
+    </div>
+    <div class="explain"><code>:where(...)</code> always contributes zero specificity, so <code>:where(.card, .panel) h2</code> is only as specific as "h2" alone (0,0,0,1) -- a single class (0,0,1,0) on the element itself easily overrides it. This is exactly why <code>:where()</code> is popular for writing easily-overridable base/reset styles.</div>
+    </div>
+</body>
+</html>

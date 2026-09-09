@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Grid Patterns</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 0; padding: 24px; background: #f5f5f5; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 16px; margin-top: 48px; border-bottom: 2px solid #ddd; padding-bottom: 6px; }
+  p.note { font-size: 13px; color: #555; }
+
+  /* ============================================================
+     PATTERN 1: "Holy Grail" layout using grid-template-areas
+     Header on top, sidebar + content in the middle, footer at bottom.
+     Named areas make the CSS read like a literal picture of the layout.
+     ============================================================ */
+  .holy-grail {
+    display: grid;
+    grid-template-columns: 160px 1fr 120px; /* nav | content | ads */
+    grid-template-rows: 60px 1fr 50px;      /* header | body | footer */
+    grid-template-areas:
+      "header header header"
+      "nav    content ads"
+      "footer footer footer";
+    gap: 10px;
+    min-height: 320px;
+    border: 1px dashed #99a;
+  }
+  .holy-grail .header  { grid-area: header;  background: #2c3e50; color: white; padding: 10px; }
+  .holy-grail .nav     { grid-area: nav;     background: #3498db; color: white; padding: 10px; }
+  .holy-grail .content { grid-area: content; background: white; border: 1px solid #ddd; padding: 10px; }
+  .holy-grail .ads     { grid-area: ads;     background: #95a5a6; color: white; padding: 10px; }
+  .holy-grail .footer  { grid-area: footer;  background: #2c3e50; color: white; padding: 10px; text-align: center; }
+
+  /* On small screens, redefine grid-template-areas to stack everything --
+     no HTML changes needed, just a different area map! */
+  @media (max-width: 500px) {
+    .holy-grail {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto;
+      grid-template-areas:
+        "header"
+        "nav"
+        "content"
+        "ads"
+        "footer";
+    }
+  }
+
+  /* ============================================================
+     PATTERN 2: Responsive card grid using auto-fit + minmax
+     No media queries needed -- the grid reflows columns by itself
+     based on how much space is available.
+     ============================================================ */
+  .responsive-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+  }
+  .responsive-grid .card {
+    background: white;
+    border: 1px solid #ddd;
+    padding: 20px;
+    text-align: center;
+    border-radius: 6px;
+  }
+
+  /* ============================================================
+     BONUS: fr unit demo -- splitting leftover space by ratio
+     ============================================================ */
+  .fr-demo {
+    display: grid;
+    grid-template-columns: 100px 1fr 2fr; /* fixed | 1 share | 2 shares of remaining space */
+    gap: 10px;
+  }
+  .fr-demo div { background: #eafaf1; border: 1px solid #27ae60; padding: 10px; text-align: center; }
+</style>
+</head>
+<body>
+  <h1>Grid Patterns Cheat-Sheet</h1>
+
+  <h2>1. Holy Grail Layout (grid-template-areas)</h2>
+  <div class="holy-grail">
+    <div class="header">Header</div>
+    <div class="nav">Nav</div>
+    <div class="content">Main Content</div>
+    <div class="ads">Ads</div>
+    <div class="footer">Footer</div>
+  </div>
+  <p class="note">Shrink the browser window below 500px width to see the layout collapse into a single stacked column via a second <code>grid-template-areas</code> definition inside a media query.</p>
+
+  <h2>2. Responsive Card Grid (auto-fit + minmax, no media queries)</h2>
+  <div class="responsive-grid">
+    <div class="card">Card A</div>
+    <div class="card">Card B</div>
+    <div class="card">Card C</div>
+    <div class="card">Card D</div>
+    <div class="card">Card E</div>
+    <div class="card">Card F</div>
+  </div>
+  <p class="note"><code>grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));</code> — resize the window and watch columns appear/disappear automatically.</p>
+
+  <h2>3. Bonus: The <code>fr</code> Unit</h2>
+  <div class="fr-demo">
+    <div>100px fixed</div>
+    <div>1fr (1 share)</div>
+    <div>2fr (2 shares)</div>
+  </div>
+  <p class="note">First column is a fixed 100px. Remaining space is split 1:2 between the other two columns.</p>
+</body>
+</html>

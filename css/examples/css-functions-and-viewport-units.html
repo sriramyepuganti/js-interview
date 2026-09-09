@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>calc(), Global Values, and Modern Viewport Units</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 24px; background: #f5f5f5; max-width: 760px; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 16px; margin-top: 40px; }
+  .note { font-size: 13px; color: #555; }
+  code { background: #eee; padding: 2px 6px; border-radius: 4px; }
+  .box { background: white; border: 1px solid #ddd; border-radius: 8px; padding: 16px; }
+
+  /* ============================================================
+     calc() -- mixing unit types, the thing plain CSS values can't do
+     ============================================================ */
+  .calc-layout {
+    display: flex;
+    gap: 16px;
+  }
+  .calc-sidebar { width: 120px; background: #eaf4fb; border-radius: 6px; padding: 8px; box-sizing: border-box; }
+  .calc-main {
+    width: calc(100% - 120px - 16px); /* full width, minus the fixed sidebar AND the gap */
+    background: #fdecea;
+    border-radius: 6px;
+    padding: 8px;
+    box-sizing: border-box;
+  }
+  :root { --gap-unit: 8px; }
+  .calc-with-var { padding: calc(var(--gap-unit) * 3); background: #eafaf1; border-radius: 6px; }
+
+  /* ============================================================
+     GLOBAL VALUES -- initial / inherit / unset / revert
+     ============================================================ */
+  .reset-demo {
+    color: red;         /* parent sets a color... */
+    border: 3px solid red;
+  }
+  .reset-demo .child-initial  { color: initial; }  /* -> back to CSS spec default (black) */
+  .reset-demo .child-inherit  { border: inherit; }  /* border DOESN'T normally inherit -- this forces it to */
+  .reset-demo .child-unset    { all: unset; display: inline-block; } /* strips everything back to a blank slate */
+  .reset-demo button.child-revert { all: revert; } /* gives back the BROWSER'S native <button> look, not a blank slate */
+  .reset-demo > div, .reset-demo > button { display: inline-block; padding: 8px; margin: 4px; }
+
+  /* ============================================================
+     MODERN VIEWPORT UNITS -- dvh vs vh (visual comparison)
+     These two boxes will render IDENTICALLY on desktop (no toolbar
+     to show/hide), but on a real mobile browser, resize the window
+     or scroll to see "dvh" track the ACTUAL visible height while
+     plain "vh" stays pinned to one fixed value.
+     ============================================================ */
+  .viewport-demo { display: flex; gap: 12px; }
+  .vh-box, .dvh-box {
+    flex: 1;
+    border-radius: 6px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    text-align: center;
+    padding: 8px;
+    box-sizing: border-box;
+  }
+  .vh-box  { height: 20vh;  background: #8e44ad; }
+  .dvh-box { height: 20dvh; background: #2980b9; }
+</style>
+</head>
+<body>
+  <h1>calc(), Global Values, and Modern Viewport Units</h1>
+
+  <h2>calc() — mixing unit types</h2>
+  <div class="box">
+    <div class="calc-layout">
+      <div class="calc-sidebar">Sidebar<br>120px fixed</div>
+      <div class="calc-main">Main content<br><code>calc(100% - 120px - 16px)</code></div>
+    </div>
+    <div class="calc-with-var" style="margin-top:12px;">Padding = <code>calc(var(--gap-unit) * 3)</code> = 24px</div>
+  </div>
+
+  <h2>Global Values: initial / inherit / unset / revert</h2>
+  <div class="box reset-demo">
+    Parent (red text, red border)
+    <div class="child-initial">initial (color back to black)</div>
+    <div class="child-inherit">inherit (border forced to match parent, even though border doesn't inherit by default)</div>
+    <div class="child-unset">unset (all styles stripped to blank slate)</div>
+    <button class="child-revert">revert (native button look restored)</button>
+  </div>
+
+  <h2>vh vs dvh (resize a real mobile browser to see the difference)</h2>
+  <div class="box">
+    <div class="viewport-demo">
+      <div class="vh-box">height: 20vh<br>(pinned to largest viewport)</div>
+      <div class="dvh-box">height: 20dvh<br>(tracks the LIVE visible viewport)</div>
+    </div>
+    <p class="note">On desktop these look identical since there's no toolbar to show/hide. On an actual phone, load this page and scroll — the address bar hiding/showing changes what "100% visible height" means, and only the <code>dvh</code> box stays accurate to it.</p>
+  </div>
+</body>
+</html>

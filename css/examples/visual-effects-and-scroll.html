@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Visual Effects &amp; Scroll — object-fit, clip-path, backdrop-filter, scroll-snap</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 24px;
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    color: #222;
+  }
+  h1 { font-size: 22px; color: #fff; }
+  h2 { font-size: 16px; margin-top: 48px; color: #fff; border-bottom: 2px solid rgba(255,255,255,0.3); padding-bottom: 6px; }
+  section { margin-bottom: 16px; }
+  p.note { font-size: 13px; color: rgba(255,255,255,0.85); }
+
+  /* ============================================================
+     1) object-fit / object-position
+     ------------------------------------------------------------
+     Three images with DIFFERENT natural aspect ratios, forced into
+     IDENTICAL square boxes. Without object-fit, they'd distort.
+     ============================================================ */
+  .avatar-row { display: flex; gap: 16px; }
+  .avatar-row .avatar-box {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid #fff;
+    background: #ccd; /* visible if object-fit weren't filling the box */
+  }
+  .avatar-row .avatar-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;      /* fills the circle, crops overflow, no distortion */
+    object-position: center top; /* keep the top of the source image visible */
+    display: block;
+  }
+
+  /* ============================================================
+     2) clip-path
+     ------------------------------------------------------------
+     A ribbon/banner shape cut with a polygon -- no extra markup,
+     no background-image trick. Also a hexagon badge.
+     ============================================================ */
+  .shape-row { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
+  .ribbon {
+    width: 160px;
+    height: 70px;
+    background: #e67e22;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    clip-path: polygon(0 0, 100% 0, 100% 70%, 50% 100%, 0 70%);
+  }
+  .hexagon {
+    width: 100px;
+    height: 90px;
+    background: #16a085;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  }
+
+  /* ============================================================
+     3) backdrop-filter (glassmorphism)
+     ------------------------------------------------------------
+     A translucent panel over the colorful body gradient. The BODY
+     gradient shows through, blurred -- filter alone couldn't do this
+     because filter only affects the panel's OWN content.
+     ============================================================ */
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px) saturate(160%);
+    -webkit-backdrop-filter: blur(10px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 14px;
+    padding: 20px;
+    color: #fff;
+    max-width: 360px;
+  }
+  .glass-panel h3 { margin: 0 0 8px; }
+  .glass-panel p { margin: 0; font-size: 14px; }
+
+  /* ============================================================
+     4) scroll-snap carousel
+     ------------------------------------------------------------
+     Native snap-scrolling, no JS. scroll-snap-type on the container,
+     scroll-snap-align on each slide.
+     ============================================================ */
+  .carousel {
+    display: flex;
+    overflow-x: auto;
+    gap: 12px;
+    padding: 8px;
+    scroll-snap-type: x mandatory;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.1);
+
+    /* bonus: standard scrollbar theming (see file 13) */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.6) transparent;
+  }
+  .carousel .slide {
+    flex: 0 0 70%;
+    scroll-snap-align: center;
+    background: #fff;
+    border-radius: 10px;
+    padding: 24px;
+    text-align: center;
+    font-weight: bold;
+    color: #2c3e50;
+  }
+  .carousel::-webkit-scrollbar { height: 8px; }
+  .carousel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.6); border-radius: 4px; }
+</style>
+</head>
+<body>
+  <h1>Visual Effects &amp; Scroll Cheat-Sheet</h1>
+  <p class="note">object-fit + clip-path + backdrop-filter + scroll-snap, all without a single line of JavaScript. See file 13 for the write-up.</p>
+
+  <section>
+    <h2>1. object-fit: cover (avatars from mismatched source images)</h2>
+    <div class="avatar-row">
+      <div class="avatar-box"><img src="https://picsum.photos/id/1011/400/300" alt="Wide source photo forced into a square avatar"></div>
+      <div class="avatar-box"><img src="https://picsum.photos/id/1012/300/500" alt="Tall source photo forced into a square avatar"></div>
+      <div class="avatar-box"><img src="https://picsum.photos/id/1013/400/400" alt="Square source photo in a square avatar"></div>
+    </div>
+    <p class="note">Each source image has a different natural aspect ratio; <code>object-fit: cover</code> crops each into an identical circle without distortion.</p>
+  </section>
+
+  <section>
+    <h2>2. clip-path (custom shapes, no images/SVG needed)</h2>
+    <div class="shape-row">
+      <div class="ribbon">SALE</div>
+      <div class="hexagon">Hex Badge</div>
+    </div>
+    <p class="note"><code>clip-path: polygon(...)</code> cuts each box to a custom shape; the clipped-away area isn't clickable either.</p>
+  </section>
+
+  <section>
+    <h2>3. backdrop-filter (glassmorphism)</h2>
+    <div class="glass-panel">
+      <h3>Frosted Glass Panel</h3>
+      <p>The colorful page background blurs through this translucent panel — that's <code>backdrop-filter</code>, not <code>filter</code>.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>4. scroll-snap (native carousel)</h2>
+    <div class="carousel">
+      <div class="slide">Slide 1</div>
+      <div class="slide">Slide 2</div>
+      <div class="slide">Slide 3</div>
+      <div class="slide">Slide 4</div>
+    </div>
+    <p class="note">Drag/scroll horizontally — each slide snaps to center via <code>scroll-snap-type: x mandatory</code> + <code>scroll-snap-align: center</code>, no JS.</p>
+  </section>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "name": "Minimal PWA Demo",
+  "short_name": "PWA Demo",
+  "description": "A minimal example of an installable, offline-capable Progressive Web App.",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2b6cb0",
+  "icons": []
+}
