@@ -516,6 +516,67 @@ Design systems that need to be framework-agnostic (usable in React, Angular, pla
 
 ---
 
+## Light DOM vs Shadow DOM (and Composing Them with `<slot>`)
+
+**What is it?**
+**Light DOM** is just the regular, ordinary DOM — specifically, it refers to the markup an AUTHOR (the person USING your custom element) writes as children between your element's tags, e.g. everything between `<user-card>` and `</user-card>` in `<user-card><span>Sriram</span></user-card>`. It's called "light" simply to contrast it with "shadow" — there's nothing special about it; it's normal, visible, page-level DOM, fully accessible to global CSS and `document.querySelector`. **Shadow DOM**, as covered above, is the encapsulated, internal DOM subtree a component attaches to ITSELF via `attachShadow()` — it belongs to the component's own implementation, not the author using it, and is normally invisible to global CSS.
+
+The key idea that trips people up: a custom element can have **both at once** — Light DOM (what the USER of the component wrote as children) and Shadow DOM (what the COMPONENT ITSELF renders internally) — and the `<slot>` element is the bridge that lets you PROJECT the Light DOM content into a specific position inside the Shadow DOM, instead of the two staying completely separate.
+
+```html
+<!-- Light DOM: what the AUTHOR writes when using the component -->
+<user-card>
+  <span slot="username">Sriram</span>
+  <span slot="role">Senior Developer</span>
+</user-card>
+```
+
+```js
+class UserCard extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+
+    // This is the component's OWN internal markup — the Shadow DOM.
+    // <slot name="..."> is a placeholder: it says "project whatever Light DOM
+    // content was marked with a matching slot='...' attribute, HERE."
+    this.shadowRoot.innerHTML = `
+      <style>
+        .card { border: 1px solid #ccc; padding: 12px; border-radius: 8px; }
+        .role { color: gray; font-size: 0.85em; }
+      </style>
+      <div class="card">
+        <strong><slot name="username">Anonymous</slot></strong>
+        <div class="role"><slot name="role">No role set</slot></div>
+      </div>
+    `;
+    // Note: the fallback text ("Anonymous", "No role set") only shows if the
+    // author didn't provide any Light DOM content for that slot at all.
+  }
+}
+customElements.define('user-card', UserCard);
+```
+
+Rendered result: the browser takes the Light DOM `<span slot="username">Sriram</span>` and displays it wherever `<slot name="username">` appears inside the Shadow DOM — visually "flattened" together, but the two DOM trees remain logically and structurally separate (`element.shadowRoot` only ever shows the Shadow DOM's own markup; `element.children`/`innerHTML` on the element itself only ever shows the Light DOM the author wrote).
+
+**A default (unnamed) `<slot>`** — with no `name` attribute — catches any Light DOM content that ISN'T assigned to a specific named slot:
+```html
+<div class="card">
+  <slot></slot> <!-- catches ALL of the author's children that have no slot="..." attribute -->
+</div>
+```
+
+**Why was it invented / what problem does it solve?**
+Without slots, a component's Shadow DOM would be entirely self-contained and closed off — there'd be no way for the person USING the component to inject their own custom content into a specific spot inside it (e.g., a custom icon inside a `<my-button>`, or a custom header inside a `<my-modal>`) without breaking encapsulation by reaching into the shadow root directly. `<slot>` solves this the same way React's `children`/`props.children` (or Vue's `<slot>`, which directly inspired this) solves the "let the consumer inject their own markup into a specific spot" problem — except this version is a native browser primitive, not framework-specific.
+
+**Real-time / real-world usage**
+Any native Web Component library that needs to let consumers customize part of a component's rendered output without touching its internal implementation — e.g., a `<my-modal>` component exposing a `header` slot and a default slot for body content, or a `<my-tab-panel>` exposing a slot per tab, while keeping the actual tab-switching logic and styles fully encapsulated inside its Shadow DOM.
+
+**How to explain this in an interview (simple English)**
+"Light DOM is just the normal markup someone writes as children of my custom element — ordinary, global-CSS-visible DOM. Shadow DOM is the component's own internal, encapsulated markup. A `<slot>` inside my Shadow DOM is a placeholder that says 'project the author's Light DOM content here' — a named slot (`slot='role'`) grabs children with a matching `slot='role'` attribute, and an unnamed `<slot>` grabs everything else. It's the native browser equivalent of React's `children` prop — it lets consumers customize specific parts of my component's output without breaking the encapsulation Shadow DOM otherwise provides."
+
+---
+
 ## Quick Summary Table
 
 | API | One-line purpose |
@@ -531,3 +592,4 @@ Design systems that need to be framework-agnostic (usable in React, Angular, pla
 | Intersection Observer | Async, efficient viewport-visibility detection — infinite scroll, custom lazy-loading, scroll animations |
 | Canvas | Pixel-based drawing surface for graphics/games/image manipulation |
 | Web Components | Native, framework-agnostic reusable elements with style/DOM encapsulation |
+| Light DOM vs Shadow DOM | Light DOM = author's normal children markup; Shadow DOM = component's own encapsulated internals; `<slot>` projects Light DOM content into a Shadow DOM position |
