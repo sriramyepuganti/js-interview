@@ -1,0 +1,13 @@
+{
+  "name": "express-api-example",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Minimal Express API example for Node.js interview prep -- run: npm install && node server.js",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
