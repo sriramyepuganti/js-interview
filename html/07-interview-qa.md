@@ -325,8 +325,11 @@ No — `required` has no effect on `type="hidden"` inputs. The spec explicitly e
 **95. What's wrong with setting `tabindex="1"`, `tabindex="2"`, `tabindex="3"` on three elements to control their tab order?**
 Any positive `tabindex` value hijacks the natural DOM-order tab sequence — elements with positive values are visited first, in ascending numeric order, before any `tabindex="0"` or naturally focusable elements, regardless of where they actually sit visually or in the markup. This is widely considered an anti-pattern because it's fragile (adding one new interactive element later means renumbering everything) and creates a tab order that no longer matches the visual/reading order, confusing keyboard and screen reader users. The correct fix is to reorder the actual DOM/source order and use `tabindex="0"` if a non-natively-focusable element needs to join the normal tab sequence.
 
+**96. What's the difference between Light DOM and Shadow DOM on a custom element, and what is `<slot>` for?**
+Light DOM is just the ordinary markup an author writes as children of a custom element (`<user-card><span>Sriram</span></user-card>`) — normal, globally-styleable DOM. Shadow DOM is the encapsulated internal markup the COMPONENT ITSELF attaches via `attachShadow()` — invisible to global CSS, and not part of the element's own `children`. A `<slot>` inside the Shadow DOM is a placeholder that projects the author's Light DOM content into a specific spot inside the Shadow DOM — a named slot (`<slot name="username">`) grabs children with a matching `slot="username"` attribute; an unnamed `<slot>` grabs everything else. It's the native-browser equivalent of React's `children` prop. See file 05.
+
 ---
 
 ## Quick Self-Check
 
-If you can answer all 95 of these out loud, in your own words, in under 6 lines each, you're in solid shape for a senior HTML-focused interview round. Pair this with the deeper explanations in files 01–06 (file 08 for the newest platform features, file 09 for security/tables/media/SVG/`data-*`/global-attribute gaps) for the "why" behind each answer.
+If you can answer all 96 of these out loud, in your own words, in under 6 lines each, you're in solid shape for a senior HTML-focused interview round. Pair this with the deeper explanations in files 01–06 (file 08 for the newest platform features, file 09 for security/tables/media/SVG/`data-*`/global-attribute gaps) for the "why" behind each answer.
